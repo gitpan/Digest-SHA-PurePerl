@@ -1,16 +1,17 @@
-Digest::SHA::PurePerl version 0.03
+Digest::SHA::PurePerl version 0.04
 ==================================
 
 The Digest::SHA::PurePerl module provides an easy way to compute
-message digests using Perl.  It supports the 32-bit algorithms of
-the NIST Secure Hash Standard (i.e. SHA-1, 224, and 256).  The
+message digests using Perl.  It supports all algorithms of the NIST
+Secure Hash Standard (i.e. SHA-1, 224, 256, 384, and 512).  The
 module also includes functions to compute keyed-hashes using the
 HMAC algorithm.
 
 The module is written in pure Perl; a C compiler is not required
 to build or use it.  However, the code is MUCH slower than the
-functionally-equivalent Digest::SHA module.  Also, Digest::SHA::PurePerl
-provides no support for the SHA-384/512 algorithms.
+functionally-equivalent Digest::SHA module.  Also, please note that
+Digest::SHA::PurePerl supports the SHA-384/512 algorithms only if
+your platform uses 64-bit integers.
 
 Digest::SHA::PurePerl conforms to the naming conventions and styles
 of the CPAN Digest module.  Several features have been added, such

@@ -1,5 +1,13 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+0.04  Fri Jul  2 01:10:48 MST 2004
+	- added support for SHA-384/512
+		-- module now offers full functionality of Digest::SHA
+		-- however, use of SHA-384/512 requires 64-bit integers
+	- included a SIGNATURE file
+		-- for stronger authentication of module contents
+			-- ref. Module::Signature on CPAN
+
 0.03  Fri Jun 25 00:06:54 MST 2004
 	- portability fix
 		-- dump files caused warnings on 64-bit platforms

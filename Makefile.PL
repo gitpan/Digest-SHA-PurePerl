@@ -4,6 +4,6 @@ WriteMakefile(
 	'NAME'		=> 'Digest::SHA::PurePerl',
 	'VERSION_FROM'	=> 'PurePerl.pm',
 	'PREREQ_PM'	=> {},
-	'AUTHOR'	=> 'Mark Shelor <mshelor@comcast.net>',
+	'AUTHOR'	=> 'Mark Shelor <mshelor@cpan.org>',
 	'NO_META'	=> 1
 );

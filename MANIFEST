@@ -4,11 +4,14 @@ MANIFEST
 META.yml
 PurePerl.pm
 README
+SIGNATURE
 t/1-exist.t
 t/1-hello-world.t
 t/2-nist-sha-1.t
 t/2-nist-sha-224.t
 t/2-nist-sha-256.t
+t/2-nist-sha-384.t
+t/2-nist-sha-512.t
 t/2-nist-sha-base64.t
 t/2-nist-sha-oo.t
 t/2-nist-vectors-bit.t
@@ -33,3 +36,5 @@ t/nist/byte-hashes.sha1
 t/nist/byte-messages.sha1
 t/state/state.1
 t/state/state.256
+t/state/state.384
+t/state/state.512
