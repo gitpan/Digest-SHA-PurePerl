@@ -1,0 +1,5 @@
+Revision history for Perl module Digest::SHA::PurePerl.
+
+0.01  Thu Jun 17 00:04:00 MST 2004
+	- Initial version, derived from Digest::SHA 5.01
+		-- hand-translation from C to Perl
