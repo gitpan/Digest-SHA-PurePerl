@@ -7,6 +7,7 @@ use File::Basename qw(dirname);
 BEGIN { plan tests => 7 }
 
 my $SHASUM = File::Spec->canonpath(dirname($0) . "/../blib/script/shasum");
+my $BLIB   = File::Spec->canonpath(dirname($0) . "/..");
 
 my @vec = (
 	"abc",
@@ -27,7 +28,7 @@ my @rsp = (
 	"75388b16512776cc5dba5da1fd890150b0c6455cb4f58b1952522525",
 	"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
 	"248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
-	"a9993e364706816aba3e25717850c26c9cd0d89b"	# wrong!
+	"a9993e364706816aba3e25717850c26c9cd0d89b"	# incorrect!
 );
 
 
@@ -51,7 +52,7 @@ close(F);
 	#	all entries are correct except the last one;
 	#	make sure shasum catches it, and approves the others
 
-my $out = `perl $SHASUM -c tmp.chk`;
+my $out = `perl -Mblib=$BLIB $SHASUM -c tmp.chk`;
 my @ent = split(/\n/, $out);
 ok(pop(@ent) =~ /FAILED$/);
 for (@ent) { ok(/OK$/) }

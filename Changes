@@ -1,5 +1,10 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.23  Thu Sep  9 23:06:18 MST 2004
+	- corrected bug in test script
+		-- use blib when invoking perl as an external 
+			command in t/8-shasum.t
+
 5.22  Tue Sep  7 19:12:40 MST 2004
 	- minor changes to documentation
 
