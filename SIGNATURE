@@ -14,13 +14,13 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 568424ddd81b11dce656673d0f6e220dc61da1c5 Changes
+SHA1 62a6f54586c212d319ec907db0fd8d5dad625789 Changes
 SHA1 59c610971d56e4944affd7d88acfb117d075c5e0 MANIFEST
-SHA1 17a81d36fa95298a7f3d2862f3f64fd46070de59 META.yml
+SHA1 cd4758e285d9dd2f2738fe26177cc76e7a5cebad META.yml
 SHA1 53e985f713cbdae5868135e5077f08d8dcc8ef64 Makefile.PL
-SHA1 5543143ba1dddeaeaf8de25dddf8be8ca0f00bd3 PurePerl.pm
-SHA1 88c9accc9ab5d4f7a66652831090f7befe165965 README
-SHA1 ca82d2c1f0b008a8209d3382b2d43968c6cc3388 shasum
+SHA1 cdb1e8e290c2fdc96a44d2dac16315df107b362b PurePerl.pm
+SHA1 ff1b8cd3ae18f208ecca409e9651aa9e92f1d4ed README
+SHA1 4fef81c47e41a6dba3398e6a205b855792f66946 shasum
 SHA1 a29b3beffa291139639c78a884ec727ecadeed8e t/1-exist.t
 SHA1 248164406fc1e8d0cf2429b8f31bfca19200e70c t/1-hello-world.t
 SHA1 81ac61b193b45e9a92f137babbddb0ad3346cd8a t/2-nist-sha-1.t
@@ -58,7 +58,7 @@ SHA1 69cd49d84cb11c83ef8e6eb36f6a472edb37079d t/state/state.512
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (Darwin)
 
-iD8DBQFBe40DBwNg/wr1Y/4RAgEPAJ9uxCxkbEfnsSLkTmsrlfWzqv2DdwCgxRb8
-gQmzX4mUNH4rZhz94vCNyMU=
-=a4Lw
+iD8DBQFBmw1ZBwNg/wr1Y/4RAoq2AKDuCe1L6G+raUgztnix+StbdyFwEACgxuGk
+zhoNY6dg/kehzELY9uWiTSk=
+=ZbH7
 -----END PGP SIGNATURE-----

@@ -1,5 +1,11 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.28  Wed Nov 10 15:33:20 MST 2004
+	- provided more flexible formatting of SHA state files
+		-- entries may now contain embedded whitespace
+			for improved readability
+	- minor code cleanups
+
 5.27  Sun Oct 24 02:54:00 MST 2004
 	- minor code cleanups
 		-- reduces size of dump files for SHA-1/224/256
@@ -24,7 +30,7 @@ Revision history for Perl module Digest::SHA::PurePerl.
 
 5.23  Thu Sep  9 23:06:18 MST 2004
 	- corrected bug in test script
-		-- use blib when invoking perl as an external 
+		-- use blib when invoking perl as an external
 			command in t/8-shasum.t
 
 5.22  Tue Sep  7 19:12:40 MST 2004

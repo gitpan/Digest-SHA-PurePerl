@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.27';
+our $VERSION = '5.28';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -414,11 +414,11 @@ sub _sha512 {
 	@N = unpack("N32", $block);
 	($a, $b, $c, $d, $e, $f, $g, $h) = @{$self->{H}};
 	for ( 0 .. 15) { $W[$_] = (($N[2*$_] << 16) << 16) | $N[2*$_+1] }
-	for (16 .. 79) { $W[$_] = / . 
-		_c_sigmaQ1(q/$W[$_- 2]/) . q/ + $W[$_- 7] + / . 
+	for (16 .. 79) { $W[$_] = / .
+		_c_sigmaQ1(q/$W[$_- 2]/) . q/ + $W[$_- 7] + / .
 		_c_sigmaQ0(q/$W[$_-15]/) . q/ + $W[$_-16] }
 	for ( 0 .. 79) {
-		$T1 = $h + / . _c_SIGMAQ1(q/$e/) . 
+		$T1 = $h + / . _c_SIGMAQ1(q/$e/) .
 			q/ + (($g) ^ (($e) & (($f) ^ ($g)))) +
 				$K512[$_] + $W[$_];
 		$T2 = / . _c_SIGMAQ0(q/$a/) .
@@ -714,9 +714,10 @@ sub _match {
 	my($fh, $tag) = @_;
 	my @f;
 	while (<$fh>) {
+		s/^\s+//;
 		s/\s+$//;
 		next if (/^(#|$)/);
-		@f = split(/:/);
+		@f = split(/[:\s]+/);
 		last;
 	}
 	shift(@f) eq $tag or return;
@@ -1172,7 +1173,7 @@ In programs:
 	$sha->add_bits($bits);
 	$sha->add_bits($data, $nbits);
 
-	$sha_copy = $sha->clone;	# if needed, make copy of 
+	$sha_copy = $sha->clone;	# if needed, make copy of
 	$sha->dump($file);		#	current digest state,
 	$sha->load($file);		#	or save it on disk
 
