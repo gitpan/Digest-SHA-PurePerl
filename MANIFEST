@@ -28,7 +28,6 @@ t/5-hmac-sha-256.t
 t/5-hmac-woodbury.t
 t/6-dump-load.t
 t/7-ireland.t
-t/8-shasum.t
 t/gillogly/state.011
 t/gillogly/state.110
 t/nist/COPYRIGHT

@@ -1,5 +1,10 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.25  Sun Sep 12 18:48:00 MST 2004
+	- removed non-essential test script
+		-- t/8-shasum.t causes problems on sparc64-linux
+	- reverted to using eval "require $module" in shasum
+
 5.24  Sun Sep 12 02:50:18 MST 2004
 	- modified shasum to use barewords in "require" statements
 		-- ref. perl.cpan.testers (157305)
