@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -36,18 +36,6 @@ if ($@) {
 
 my $MAX32 = 0xffffffff;
 my $TWO32 = 4294967296;
-
-sub _SR32 { ($_[0] >> $_[1]) & ((1 << (32 - $_[1])) - 1) }
-sub _ROTR { (($_[0] << (32 - $_[1])) & $MAX32) |
-		(($_[0] >> $_[1]) & ((1 << (32 - $_[1])) - 1)) }
-
-sub _Ch { ($_[0] & $_[1]) ^ (~$_[0] & $_[2]) }
-sub _Ma { ($_[0] & $_[1]) ^ ($_[0] & $_[2]) ^ ($_[1] & $_[2]) }
-
-sub _SIGMA0 { _ROTR($_[0],  2) ^ _ROTR($_[0], 13) ^ _ROTR($_[0], 22) }
-sub _SIGMA1 { _ROTR($_[0],  6) ^ _ROTR($_[0], 11) ^ _ROTR($_[0], 25) }
-sub _sigma0 { _ROTR($_[0],  7) ^ _ROTR($_[0], 18) ^ _SR32($_[0],  3) }
-sub _sigma1 { _ROTR($_[0], 17) ^ _ROTR($_[0], 19) ^ _SR32($_[0], 10) }
 
 my($K1, $K2, $K3, $K4) = (	# SHA-1 constants
 	0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6
@@ -87,67 +75,238 @@ my @H0256 = (			# SHA-256 initial hash value
 	0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
 );
 
-sub _sha1 {
-	my($self, $block) = @_;
-	my(@W, $a, $b, $c, $d, $e, $T, $tmp);
+# Routines with a "_c_" prefix create Perl code-fragments that are
+# eval-ed at initialization.  This technique emulates the behavior
+# of the C preprocessor, thereby allowing the optimized transform
+# code from Digest::SHA to be more easily rendered in Perl.
+#
+# BTW, all these gyrations with cryptic runtime code generation
+# result in a 20% performance increase compared to the initial
+# version, which was MUCH easier to understand.  Normally, such a
+# trade-off wouldn't be worth it.  But given the workhorse nature
+# of digest computation routines, an exception was made here.
 
-	@W = unpack("N16", $block);
-	for (16 .. 79) {
-		$tmp = $W[$_-3] ^ $W[$_-8] ^ $W[$_-14] ^ $W[$_-16];
-		$W[$_] = (($tmp << 1) & $MAX32) | (($tmp >> 31) & 0x01);
-	}
-	($a, $b, $c, $d, $e) = @{$self->{H}};
-	for (0 .. 19) {
-		$T = ((($a << 5) & $MAX32) | (($a >> 27) & 0x1f)) +
-			(($b & $c) ^ (~$b & $d)) + $e + $K1 + $W[$_];
-		$e = $d; $d = $c;
-		$c = (($b << 30) & $MAX32) | (($b >> 2) & 0x3fffffff);
-		$b = $a; $a = $T;
-	}
-	for (20 .. 39) {
-		$T = ((($a << 5) & $MAX32) | (($a >> 27) & 0x1f)) +
-			($b ^ $c ^ $d) + $e + $K2 + $W[$_];
-		$e = $d; $d = $c;
-		$c = (($b << 30) & $MAX32) | (($b >> 2) & 0x3fffffff);
-		$b = $a; $a = $T;
-	}
-	for (40 .. 59) {
-		$T = ((($a << 5) & $MAX32) | (($a >> 27) & 0x1f)) +
-			(($b & $c) ^ ($b & $d) ^ ($c & $d)) + $e + $K3 + $W[$_];
-		$e = $d; $d = $c;
-		$c = (($b << 30) & $MAX32) | (($b >> 2) & 0x3fffffff);
-		$b = $a; $a = $T;
-	}
-	for (60 .. 79) {
-		$T = ((($a << 5) & $MAX32) | (($a >> 27) & 0x1f)) +
-			($b ^ $c ^ $d) + $e + $K4 + $W[$_];
-		$e = $d; $d = $c;
-		$c = (($b << 30) & $MAX32) | (($b >> 2) & 0x3fffffff);
-		$b = $a; $a = $T;
-	}
-	$self->{H}->[0] += $a; $self->{H}->[1] += $b; $self->{H}->[2] += $c;
-	$self->{H}->[3] += $d; $self->{H}->[4] += $e;
+sub _c_SL32 {			# code to shift $x left by $n bits
+	my($x, $n) = @_;
+	my $mask = (1 << 16) << 16 ? " & $MAX32" : "";
+	"(($x << $n)$mask)";
 }
 
-sub _sha256 {
+sub _c_SR32 {			# code to shift $x right by $n bits
+	my($x, $n) = @_;
+	my $mask = (1 << (32 - $n)) - 1;
+	"(($x >> $n) & $mask)";
+}
+
+sub _c_Ch { my($x, $y, $z) = @_; "($z ^ ($x & ($y ^ $z)))" }
+sub _c_Pa { my($x, $y, $z) = @_; "($x ^ $y ^ $z)" }
+sub _c_Ma { my($x, $y, $z) = @_; "(($x & $y) | ($z & ($x | $y)))" }
+
+sub _c_ROTR {			# code to rotate $x right by $n bits
+	my($x, $n) = @_;
+	"(" . _c_SR32($x, $n) . " | " . _c_SL32($x, 32 - $n) . ")";
+}
+
+sub _c_ROTL {			# code to rotate $x left by $n bits
+	my($x, $n) = @_;
+	"(" . _c_SL32($x, $n) . " | " . _c_SR32($x, 32 - $n) . ")";
+}
+
+sub _c_SIGMA0 {			# ref. NIST SHA standard
+	my($x) = @_;
+	"(" . _c_ROTR($x,  2) . " ^ " . _c_ROTR($x, 13) . " ^ " .
+		_c_ROTR($x, 22) . ")";
+}
+
+sub _c_SIGMA1 {
+	my($x) = @_;
+	"(" . _c_ROTR($x,  6) . " ^ " . _c_ROTR($x, 11) . " ^ " .
+		_c_ROTR($x, 25) . ")";
+}
+
+sub _c_sigma0 {
+	my($x) = @_;
+	"(" . _c_ROTR($x,  7) . " ^ " . _c_ROTR($x, 18) . " ^ " .
+		_c_SR32($x,  3) . ")";
+}
+
+sub _c_sigma1 {
+	my($x) = @_;
+	"(" . _c_ROTR($x, 17) . " ^ " . _c_ROTR($x, 19) . " ^ " .
+		_c_SR32($x, 10) . ")";
+}
+
+sub _c_M1Ch {			# ref. Digest::SHA sha.c (sha1 routine)
+	my($a, $b, $c, $d, $e, $k, $w) = @_;
+	"$e += " . _c_ROTL($a, 5) . " + " . _c_Ch($b, $c, $d) .
+		" + $k + $w; $b = " . _c_ROTL($b, 30) . ";\n";
+}
+
+sub _c_M1Pa {
+	my($a, $b, $c, $d, $e, $k, $w) = @_;
+	"$e += " . _c_ROTL($a, 5) . " + " . _c_Pa($b, $c, $d) .
+		" + $k + $w; $b = " . _c_ROTL($b, 30) . ";\n";
+}
+
+sub _c_M1Ma {
+	my($a, $b, $c, $d, $e, $k, $w) = @_;
+	"$e += " . _c_ROTL($a, 5) . " + " . _c_Ma($b, $c, $d) .
+		" + $k + $w; $b = " . _c_ROTL($b, 30) . ";\n";
+}
+
+sub _c_M11Ch { my($k, $w) = @_; _c_M1Ch('$a', '$b', '$c', '$d', '$e', $k, $w) }
+sub _c_M11Pa { my($k, $w) = @_; _c_M1Pa('$a', '$b', '$c', '$d', '$e', $k, $w) }
+sub _c_M11Ma { my($k, $w) = @_; _c_M1Ma('$a', '$b', '$c', '$d', '$e', $k, $w) }
+sub _c_M12Ch { my($k, $w) = @_; _c_M1Ch('$e', '$a', '$b', '$c', '$d', $k, $w) }
+sub _c_M12Pa { my($k, $w) = @_; _c_M1Pa('$e', '$a', '$b', '$c', '$d', $k, $w) }
+sub _c_M12Ma { my($k, $w) = @_; _c_M1Ma('$e', '$a', '$b', '$c', '$d', $k, $w) }
+sub _c_M13Ch { my($k, $w) = @_; _c_M1Ch('$d', '$e', '$a', '$b', '$c', $k, $w) }
+sub _c_M13Pa { my($k, $w) = @_; _c_M1Pa('$d', '$e', '$a', '$b', '$c', $k, $w) }
+sub _c_M13Ma { my($k, $w) = @_; _c_M1Ma('$d', '$e', '$a', '$b', '$c', $k, $w) }
+sub _c_M14Ch { my($k, $w) = @_; _c_M1Ch('$c', '$d', '$e', '$a', '$b', $k, $w) }
+sub _c_M14Pa { my($k, $w) = @_; _c_M1Pa('$c', '$d', '$e', '$a', '$b', $k, $w) }
+sub _c_M14Ma { my($k, $w) = @_; _c_M1Ma('$c', '$d', '$e', '$a', '$b', $k, $w) }
+sub _c_M15Ch { my($k, $w) = @_; _c_M1Ch('$b', '$c', '$d', '$e', '$a', $k, $w) }
+sub _c_M15Pa { my($k, $w) = @_; _c_M1Pa('$b', '$c', '$d', '$e', '$a', $k, $w) }
+sub _c_M15Ma { my($k, $w) = @_; _c_M1Ma('$b', '$c', '$d', '$e', '$a', $k, $w) }
+
+sub _c_W11 { my($s) = @_; '$W[' . (($s +  0) & 0xf) . ']' }
+sub _c_W12 { my($s) = @_; '$W[' . (($s + 13) & 0xf) . ']' }
+sub _c_W13 { my($s) = @_; '$W[' . (($s +  8) & 0xf) . ']' }
+sub _c_W14 { my($s) = @_; '$W[' . (($s +  2) & 0xf) . ']' }
+
+sub _c_A1 {
+	my($s) = @_;
+	my $tmp = _c_W11($s) . " ^ " . _c_W12($s) . " ^ " .
+		_c_W13($s) . " ^ " . _c_W14($s);
+	"((\$tmp = $tmp), (" . _c_W11($s) . " = " . _c_ROTL('$tmp', 1) . "))";
+}
+
+# The following code emulates the "sha1" routine from Digest::SHA sha.c
+
+my $sha1_code =
+'sub _sha1 {
 	my($self, $block) = @_;
-	my(@W, $a, $b, $c, $d, $e, $f, $g, $h, $T1, $T2);
+	my(@W, $a, $b, $c, $d, $e, $tmp);
 
 	@W = unpack("N16", $block);
-	for (16 .. 63) {
-		$W[$_]=_sigma1($W[$_-2])+$W[$_-7]+_sigma0($W[$_-15])+$W[$_-16];
-	}
+	($a, $b, $c, $d, $e) = @{$self->{H}};
+' .
+	_c_M11Ch('$K1', '$W[ 0]'  ) . _c_M12Ch('$K1', '$W[ 1]'  ) .
+	_c_M13Ch('$K1', '$W[ 2]'  ) . _c_M14Ch('$K1', '$W[ 3]'  ) .
+	_c_M15Ch('$K1', '$W[ 4]'  ) . _c_M11Ch('$K1', '$W[ 5]'  ) .
+	_c_M12Ch('$K1', '$W[ 6]'  ) . _c_M13Ch('$K1', '$W[ 7]'  ) .
+	_c_M14Ch('$K1', '$W[ 8]'  ) . _c_M15Ch('$K1', '$W[ 9]'  ) .
+	_c_M11Ch('$K1', '$W[10]'  ) . _c_M12Ch('$K1', '$W[11]'  ) .
+	_c_M13Ch('$K1', '$W[12]'  ) . _c_M14Ch('$K1', '$W[13]'  ) .
+	_c_M15Ch('$K1', '$W[14]'  ) . _c_M11Ch('$K1', '$W[15]'  ) .
+	_c_M12Ch('$K1', _c_A1( 0) ) . _c_M13Ch('$K1', _c_A1( 1) ) .
+	_c_M14Ch('$K1', _c_A1( 2) ) . _c_M15Ch('$K1', _c_A1( 3) ) .
+	_c_M11Pa('$K2', _c_A1( 4) ) . _c_M12Pa('$K2', _c_A1( 5) ) .
+	_c_M13Pa('$K2', _c_A1( 6) ) . _c_M14Pa('$K2', _c_A1( 7) ) .
+	_c_M15Pa('$K2', _c_A1( 8) ) . _c_M11Pa('$K2', _c_A1( 9) ) .
+	_c_M12Pa('$K2', _c_A1(10) ) . _c_M13Pa('$K2', _c_A1(11) ) .
+	_c_M14Pa('$K2', _c_A1(12) ) . _c_M15Pa('$K2', _c_A1(13) ) .
+	_c_M11Pa('$K2', _c_A1(14) ) . _c_M12Pa('$K2', _c_A1(15) ) .
+	_c_M13Pa('$K2', _c_A1( 0) ) . _c_M14Pa('$K2', _c_A1( 1) ) .
+	_c_M15Pa('$K2', _c_A1( 2) ) . _c_M11Pa('$K2', _c_A1( 3) ) .
+	_c_M12Pa('$K2', _c_A1( 4) ) . _c_M13Pa('$K2', _c_A1( 5) ) .
+	_c_M14Pa('$K2', _c_A1( 6) ) . _c_M15Pa('$K2', _c_A1( 7) ) .
+	_c_M11Ma('$K3', _c_A1( 8) ) . _c_M12Ma('$K3', _c_A1( 9) ) .
+	_c_M13Ma('$K3', _c_A1(10) ) . _c_M14Ma('$K3', _c_A1(11) ) .
+	_c_M15Ma('$K3', _c_A1(12) ) . _c_M11Ma('$K3', _c_A1(13) ) .
+	_c_M12Ma('$K3', _c_A1(14) ) . _c_M13Ma('$K3', _c_A1(15) ) .
+	_c_M14Ma('$K3', _c_A1( 0) ) . _c_M15Ma('$K3', _c_A1( 1) ) .
+	_c_M11Ma('$K3', _c_A1( 2) ) . _c_M12Ma('$K3', _c_A1( 3) ) .
+	_c_M13Ma('$K3', _c_A1( 4) ) . _c_M14Ma('$K3', _c_A1( 5) ) .
+	_c_M15Ma('$K3', _c_A1( 6) ) . _c_M11Ma('$K3', _c_A1( 7) ) .
+	_c_M12Ma('$K3', _c_A1( 8) ) . _c_M13Ma('$K3', _c_A1( 9) ) .
+	_c_M14Ma('$K3', _c_A1(10) ) . _c_M15Ma('$K3', _c_A1(11) ) .
+	_c_M11Pa('$K4', _c_A1(12) ) . _c_M12Pa('$K4', _c_A1(13) ) .
+	_c_M13Pa('$K4', _c_A1(14) ) . _c_M14Pa('$K4', _c_A1(15) ) .
+	_c_M15Pa('$K4', _c_A1( 0) ) . _c_M11Pa('$K4', _c_A1( 1) ) .
+	_c_M12Pa('$K4', _c_A1( 2) ) . _c_M13Pa('$K4', _c_A1( 3) ) .
+	_c_M14Pa('$K4', _c_A1( 4) ) . _c_M15Pa('$K4', _c_A1( 5) ) .
+	_c_M11Pa('$K4', _c_A1( 6) ) . _c_M12Pa('$K4', _c_A1( 7) ) .
+	_c_M13Pa('$K4', _c_A1( 8) ) . _c_M14Pa('$K4', _c_A1( 9) ) .
+	_c_M15Pa('$K4', _c_A1(10) ) . _c_M11Pa('$K4', _c_A1(11) ) .
+	_c_M12Pa('$K4', _c_A1(12) ) . _c_M13Pa('$K4', _c_A1(13) ) .
+	_c_M14Pa('$K4', _c_A1(14) ) . _c_M15Pa('$K4', _c_A1(15) ) .
+
+'	$self->{H}->[0] += $a; $self->{H}->[1] += $b; $self->{H}->[2] += $c;
+	$self->{H}->[3] += $d; $self->{H}->[4] += $e;
+}
+';
+
+eval($sha1_code);
+
+sub _c_M2 {			# ref. Digest::SHA sha.c (sha256 routine)
+	my($a, $b, $c, $d, $e, $f, $g, $h, $w) = @_;
+	"\$T1 = $h + " . _c_SIGMA1($e) . " + " . _c_Ch($e, $f, $g) .
+		" + \$K256[\$i++] + $w; $h = \$T1 + " . _c_SIGMA0($a) .
+		" + " . _c_Ma($a, $b, $c) . "; $d += \$T1;\n";
+}
+
+sub _c_M21 { _c_M2('$a', '$b', '$c', '$d', '$e', '$f', '$g', '$h', $_[0]) }
+sub _c_M22 { _c_M2('$h', '$a', '$b', '$c', '$d', '$e', '$f', '$g', $_[0]) }
+sub _c_M23 { _c_M2('$g', '$h', '$a', '$b', '$c', '$d', '$e', '$f', $_[0]) }
+sub _c_M24 { _c_M2('$f', '$g', '$h', '$a', '$b', '$c', '$d', '$e', $_[0]) }
+sub _c_M25 { _c_M2('$e', '$f', '$g', '$h', '$a', '$b', '$c', '$d', $_[0]) }
+sub _c_M26 { _c_M2('$d', '$e', '$f', '$g', '$h', '$a', '$b', '$c', $_[0]) }
+sub _c_M27 { _c_M2('$c', '$d', '$e', '$f', '$g', '$h', '$a', '$b', $_[0]) }
+sub _c_M28 { _c_M2('$b', '$c', '$d', '$e', '$f', '$g', '$h', '$a', $_[0]) }
+
+sub _c_W21 { my($s) = @_; '$W[' . (($s +  0) & 0xf) . ']' }
+sub _c_W22 { my($s) = @_; '$W[' . (($s + 14) & 0xf) . ']' }
+sub _c_W23 { my($s) = @_; '$W[' . (($s +  9) & 0xf) . ']' }
+sub _c_W24 { my($s) = @_; '$W[' . (($s +  1) & 0xf) . ']' }
+
+sub _c_A2 {
+	my($s) = @_;
+	"(" . _c_W21($s) . " += " . _c_sigma1(_c_W22($s)) . " + " .
+		_c_W23($s) . " + " . _c_sigma0(_c_W24($s)) . ")";
+}
+
+# The following code emulates the "sha256" routine from Digest::SHA sha.c
+
+my $sha256_code =
+'sub _sha256 {
+	my($self, $block) = @_;
+	my(@W, $a, $b, $c, $d, $e, $f, $g, $h, $i, $T1);
+
+	@W = unpack("N16", $block);
 	($a, $b, $c, $d, $e, $f, $g, $h) = @{$self->{H}};
-	for (0 .. 63) {
-		$T1 = $h + _SIGMA1($e) + _Ch($e, $f, $g) + $K256[$_] + $W[$_];
-		$T2 = _SIGMA0($a) + _Ma($a, $b, $c);
-		$h = $g; $g = $f; $f = $e; $e = $d + $T1;
-		$d = $c; $c = $b; $b = $a; $a = $T1 + $T2;
-	}
-	$self->{H}->[0] += $a; $self->{H}->[1] += $b; $self->{H}->[2] += $c;
+' .
+	_c_M21('$W[ 0]')  . _c_M22('$W[ 1]')  . _c_M23('$W[ 2]')  .
+	_c_M24('$W[ 3]')  . _c_M25('$W[ 4]')  . _c_M26('$W[ 5]')  .
+	_c_M27('$W[ 6]')  . _c_M28('$W[ 7]')  . _c_M21('$W[ 8]')  .
+	_c_M22('$W[ 9]')  . _c_M23('$W[10]')  . _c_M24('$W[11]')  .
+	_c_M25('$W[12]')  . _c_M26('$W[13]')  . _c_M27('$W[14]')  .
+	_c_M28('$W[15]')  .
+	_c_M21(_c_A2( 0)) . _c_M22(_c_A2( 1)) . _c_M23(_c_A2( 2)) .
+	_c_M24(_c_A2( 3)) . _c_M25(_c_A2( 4)) . _c_M26(_c_A2( 5)) .
+	_c_M27(_c_A2( 6)) . _c_M28(_c_A2( 7)) . _c_M21(_c_A2( 8)) .
+	_c_M22(_c_A2( 9)) . _c_M23(_c_A2(10)) . _c_M24(_c_A2(11)) .
+	_c_M25(_c_A2(12)) . _c_M26(_c_A2(13)) . _c_M27(_c_A2(14)) .
+	_c_M28(_c_A2(15)) . _c_M21(_c_A2( 0)) . _c_M22(_c_A2( 1)) .
+	_c_M23(_c_A2( 2)) . _c_M24(_c_A2( 3)) . _c_M25(_c_A2( 4)) .
+	_c_M26(_c_A2( 5)) . _c_M27(_c_A2( 6)) . _c_M28(_c_A2( 7)) .
+	_c_M21(_c_A2( 8)) . _c_M22(_c_A2( 9)) . _c_M23(_c_A2(10)) .
+	_c_M24(_c_A2(11)) . _c_M25(_c_A2(12)) . _c_M26(_c_A2(13)) .
+	_c_M27(_c_A2(14)) . _c_M28(_c_A2(15)) . _c_M21(_c_A2( 0)) .
+	_c_M22(_c_A2( 1)) . _c_M23(_c_A2( 2)) . _c_M24(_c_A2( 3)) .
+	_c_M25(_c_A2( 4)) . _c_M26(_c_A2( 5)) . _c_M27(_c_A2( 6)) .
+	_c_M28(_c_A2( 7)) . _c_M21(_c_A2( 8)) . _c_M22(_c_A2( 9)) .
+	_c_M23(_c_A2(10)) . _c_M24(_c_A2(11)) . _c_M25(_c_A2(12)) .
+	_c_M26(_c_A2(13)) . _c_M27(_c_A2(14)) . _c_M28(_c_A2(15)) .
+
+'	$self->{H}->[0] += $a; $self->{H}->[1] += $b; $self->{H}->[2] += $c;
 	$self->{H}->[3] += $d; $self->{H}->[4] += $e; $self->{H}->[5] += $f;
 	$self->{H}->[6] += $g; $self->{H}->[7] += $h;
 }
+';
+
+eval($sha256_code);
 
 sub _SETBIT {
 	my($bitstr, $pos) = @_;
@@ -391,8 +550,9 @@ sub _match {
 	my($fh, $tag) = @_;
 	my @f;
 	while (<$fh>) {
-		next if (/^#/ || /^\s/);
-		@f = split(/:|\n/);
+		s/\s+$//;
+		next if (/^(#|$)/);
+		@f = split(/:/);
 		last;
 	}
 	shift(@f) eq $tag or return;
@@ -407,17 +567,14 @@ sub _shaload {
 	my $self = _shaopen(shift(@f));
 
 	@f = _match(*F, "H") or return;
-	$self->{H} = [];
-	for (@f) { push(@{$self->{H}}, hex($_)) }
+	@{$self->{H}} = map { hex($_) } @f;
 
 	@f = _match(*F, "block") or return;
 	for (@f) { $self->{block} .= chr(hex($_)) }
 
 	@f = _match(*F, "blockcnt") or return;
 	$self->{blockcnt} = shift(@f);
-	if ($self->{blockcnt} == 0) { $self->{block} = "" }
-	else { $self->{block} = substr($self->{block}, 0,
-		_BYTECNT($self->{blockcnt})) }
+	$self->{block} = substr($self->{block},0,_BYTECNT($self->{blockcnt}));
 
 	@f = _match(*F, "lenhh") or return;
 	@f = _match(*F, "lenhl") or return;

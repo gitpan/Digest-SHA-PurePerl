@@ -1,5 +1,11 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+0.02  Tue Jun 22 04:24:00 MST 2004
+	- Increased speed of SHA transforms
+		-- using optimization ideas from Digest::SHA package
+		-- SHA-1       ~  20% faster
+		-- SHA-224/256 ~ 120% faster
+
 0.01  Thu Jun 17 00:04:00 MST 2004
 	- Initial version, derived from Digest::SHA 5.01
 		-- hand-translation from C to Perl
