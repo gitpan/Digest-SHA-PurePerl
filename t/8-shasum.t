@@ -52,10 +52,10 @@ close(F);
 	#	all entries are correct except the last one;
 	#	make sure shasum catches it, and approves the others
 
-my $out = `perl -Mblib=$BLIB $SHASUM -c tmp.chk`;
-my @ent = split(/\n/, $out);
-ok(pop(@ent) =~ /FAILED$/);
-for (@ent) { ok(/OK$/) }
+my @out = `perl -Mblib=$BLIB $SHASUM -c tmp.chk`;
+for (@out) { s/\s+$// }
+ok(pop(@out) =~ /FAILED$/);
+for (@out) { ok(/OK$/) }
 
 
 	# remove temporary files

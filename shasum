@@ -4,14 +4,14 @@
 	#
 	# Copyright (C) 2003-2004 Mark Shelor, All Rights Reserved
 	#
-	# Version: 5.23
-	# Thu Sep  9 23:06:18 MST 2004
+	# Version: 5.24
+	# Sun Sep 12 02:50:18 MST 2004
 
 
 use strict;
 use Getopt::Long;
 
-my $VERSION = "5.23";
+my $VERSION = "5.24";
 
 
 	# Try to use Digest::SHA, since it's faster.  If not installed,
@@ -21,10 +21,10 @@ my $MOD_PREFER = "Digest::SHA";
 my $MOD_SECOND = "Digest::SHA::PurePerl";
 
 my $module = $MOD_PREFER;
-eval "require $module";
+eval { require Digest::SHA };
 if ($@) {
 	$module = $MOD_SECOND;
-	eval "require $module";
+	eval { require Digest::SHA::PurePerl };
 	die "Unable to find $MOD_PREFER or $MOD_SECOND\n" if $@;
 }
 

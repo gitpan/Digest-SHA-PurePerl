@@ -1,5 +1,9 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.24  Sun Sep 12 02:50:18 MST 2004
+	- modified shasum to use barewords in "require" statements
+		-- ref. perl.cpan.testers (157305)
+
 5.23  Thu Sep  9 23:06:18 MST 2004
 	- corrected bug in test script
 		-- use blib when invoking perl as an external 
