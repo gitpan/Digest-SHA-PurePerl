@@ -1,17 +1,17 @@
-#!/usr/bin/perl -w
+#!perl -w
 
 	# shasum: filter for computing SHA digests (analogous to md5sum)
 	#
 	# Copyright (C) 2003-2004 Mark Shelor, All Rights Reserved
 	#
-	# Version: 5.26
-	# Thu Oct  7 14:52:00 MST 2004
+	# Version: 5.27
+	# Sun Oct 24 02:54:00 MST 2004
 
 
 use strict;
 use Getopt::Long;
 
-my $VERSION = "5.26";
+my $VERSION = "5.27";
 
 
 	# Try to use Digest::SHA, since it's faster.  If not installed,

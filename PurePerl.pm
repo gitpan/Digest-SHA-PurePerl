@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.26';
+our $VERSION = '5.27';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -323,7 +323,7 @@ my $sha512 = \&_sha512_placeholder;
 
 my $_64bit_code = '
 
-no warnings;	# suppress warnings for non-portable 64-bit constants
+no warnings;	# suppress warnings triggered by 64-bit constants
 
 @K512 = (
 	0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f,
@@ -696,7 +696,7 @@ sub _shadump {
 	printf F "\n";
 	printf F "block";
 	my @c = unpack("C*", $self->{block});
-	push(@c, 0x00) while scalar(@c) < 128;
+	push(@c, 0x00) while scalar(@c) < ($self->{blocksize} >> 3);
 	for (@c) { printf F ":%02x", $_ }
 	printf F "\n";
 	printf F "blockcnt:%u\n", $self->{blockcnt};

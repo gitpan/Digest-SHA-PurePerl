@@ -14,13 +14,13 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 450507ad4c8be6b0fb4ce601452fa5fac5d613bf Changes
-SHA1 6bda88f62a5f7f9486f7584e3145e0b5fb1df9a9 MANIFEST
-SHA1 63900875aa15e718955a9d244366c9881a972755 META.yml
+SHA1 568424ddd81b11dce656673d0f6e220dc61da1c5 Changes
+SHA1 59c610971d56e4944affd7d88acfb117d075c5e0 MANIFEST
+SHA1 17a81d36fa95298a7f3d2862f3f64fd46070de59 META.yml
 SHA1 53e985f713cbdae5868135e5077f08d8dcc8ef64 Makefile.PL
-SHA1 b7bb9b224742e2c17fa7066b3ccc93f776cb05b5 PurePerl.pm
-SHA1 d376aacd75c86332705fe570160f3226a08641ba README
-SHA1 f3a2dcc8b80014baeac206257a7c3074f21b2124 shasum
+SHA1 5543143ba1dddeaeaf8de25dddf8be8ca0f00bd3 PurePerl.pm
+SHA1 88c9accc9ab5d4f7a66652831090f7befe165965 README
+SHA1 ca82d2c1f0b008a8209d3382b2d43968c6cc3388 shasum
 SHA1 a29b3beffa291139639c78a884ec727ecadeed8e t/1-exist.t
 SHA1 248164406fc1e8d0cf2429b8f31bfca19200e70c t/1-hello-world.t
 SHA1 81ac61b193b45e9a92f137babbddb0ad3346cd8a t/2-nist-sha-1.t
@@ -43,23 +43,22 @@ SHA1 d79b1b8fe905cda80e55f673a71347708203282f t/5-hmac-sha-256.t
 SHA1 6d8d2d518ff2865f91d88fed0498fbe732f9c6ee t/5-hmac-woodbury.t
 SHA1 73da579ba00ce6cdf58b017c9d63927844cd1eab t/6-dump-load.t
 SHA1 6c22344eb9163271c94aa2e060a638f1f936470a t/7-ireland.t
-SHA1 01f317858e1a9a9832157f76d3950d56208c4a03 t/8-shasum.t
-SHA1 d6bd2384003f9f5b3c43aaa0a9fb74838d41b30c t/gillogly/state.011
-SHA1 4237f086f98425c77f486f1bc1fac882eb4cfd84 t/gillogly/state.110
+SHA1 636d5e987243f6634fdc1dff1fe1d11d07778347 t/gillogly/state.011
+SHA1 b1e86af6b46e066555bbcd749982ccba816cf744 t/gillogly/state.110
 SHA1 427874bceb58bc3a36b5808a204023334614930b t/nist/COPYRIGHT
 SHA1 573d7d4bba50c5cecb4a86f1ffff14d764a31ecb t/nist/Readme.txt
 SHA1 7996bb1a434fb3f6fd38f64800ab3b2fe5d23c6b t/nist/bit-hashes.sha1
 SHA1 d21096373dfbf3330d89bcb2e704b543a27b6065 t/nist/bit-messages.sha1
 SHA1 dd66fe858830fb1b23d35affa402b52a77a15b1f t/nist/byte-hashes.sha1
 SHA1 936304c2db3a3ee49ecb1247f8466814cab080a0 t/nist/byte-messages.sha1
-SHA1 6cf53c0bdf33425b7b58e685b8651fc062ff71e2 t/state/state.1
-SHA1 ecf1aa855d9a0a6bc3291feadf2fa77f3bc4da7f t/state/state.256
+SHA1 3b51b03c790b1cf112d4804573f5fd4814b384c2 t/state/state.1
+SHA1 cc3d0feffc019e4651fb085e7bc51e190e58fa53 t/state/state.256
 SHA1 2130ee8086bc7bf41fc329e9d87a81e2d98b68c8 t/state/state.384
 SHA1 69cd49d84cb11c83ef8e6eb36f6a472edb37079d t/state/state.512
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (Darwin)
 
-iD8DBQFBaPJqBwNg/wr1Y/4RApJRAJwKKD0ssZimBmZStwVEL8jWLvX/8gCgg5C8
-IdxaJmfcr1w3nty5+qitiDg=
-=zdiW
+iD8DBQFBe40DBwNg/wr1Y/4RAgEPAJ9uxCxkbEfnsSLkTmsrlfWzqv2DdwCgxRb8
+gQmzX4mUNH4rZhz94vCNyMU=
+=a4Lw
 -----END PGP SIGNATURE-----

@@ -1,5 +1,9 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.27  Sun Oct 24 02:54:00 MST 2004
+	- minor code cleanups
+		-- reduces size of dump files for SHA-1/224/256
+
 5.26  Thu Oct  7 14:52:00 MST 2004
 	- streamlined distribution
 		-- reduced NIST vector tests from 200 to 20
