@@ -1,29 +1,15 @@
-Digest::SHA::PurePerl version 0.06
+Digest::SHA::PurePerl version 5.10
 ==================================
 
-The Digest::SHA::PurePerl module provides an easy way to compute
-message digests using Perl.  It supports all algorithms of the NIST
-Secure Hash Standard (i.e. SHA-1, 224, 256, 384, and 512).  The
-module also includes functions to compute keyed-hashes using the
-HMAC algorithm.
+Digest::SHA::PurePerl is a complete implementation of the NIST
+Secure Hash Standard.  It gives Perl programmers a convenient way
+to calculate SHA-1, SHA-224, SHA-256, SHA-384, and SHA-512 message
+digests.  The module can handle all types of input, including
+partial-byte data.
 
-The module is written in pure Perl; a C compiler is not required
-to build or use it.  However, the code is MUCH slower than the
-functionally-equivalent Digest::SHA module.  Also, please note that
-Digest::SHA::PurePerl supports the SHA-384/512 algorithms only if
-your platform uses 64-bit integers.
-
-Digest::SHA::PurePerl conforms to the naming conventions and styles
-of the CPAN Digest module.  Several features have been added, such
-as the ability to:
-
-	- calculate digests for bit-oriented messages
-	- store and retrieve intermediate SHA states
-
-This module inherits from Digest::base if the latter is installed
-on your platform.  If the base class is not present, Digest::SHA::PurePerl
-still works; it simply uses its own local routines to supply the
-missing functionality.
+Digest::SHA::PurePerl is written entirely in Perl.  If your platform
+has a C compiler, you should install the functionally-equivalent
+(but much faster) Digest::SHA module.
 
 Please refer to the tests subdirectory (t/*.t) for an extensive
 set of SHA vectors compiled from various sources.  Of particular
@@ -52,4 +38,4 @@ it under the same terms as Perl itself.
 
 Please refer to the Perl Artistic License for details:
 
-http://search.cpan.org/~nwclark/perl-5.8.2/pod/perlartistic.pod
+http://search.cpan.org/perldoc?perlartistic

@@ -1,5 +1,9 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.10  Fri Aug  6 02:10:12 MST 2004
+	- simplified module documentation
+		-- made it consistent with Digest::SHA docs
+
 0.06  Tue Aug  3 02:12:40 MST 2004
 	- improved performance of SHA-384/512
 		-- using inline eval'ed code instead of subroutines

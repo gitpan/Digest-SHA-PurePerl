@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '0.06';
+our $VERSION = '5.10';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -1147,69 +1147,46 @@ Digest::SHA::PurePerl - Perl implementation of SHA-1/224/256/384/512
 
 =head1 SYNOPSIS (SHA)
 
- # Functional style
- use Digest::SHA::PurePerl qw(sha1 sha1_hex sha1_base64 sha256 ... );
+	use Digest::SHA::PurePerl qw(sha1_hex);
 
- $digest = sha1($data);
- $digest = sha1_hex($data);
- $digest = sha1_base64($data);
+	# Display the SHA-1 digest of "abc"
+	print sha1_hex("abc"), "\n";
 
-
- # OO style
- use Digest::SHA::PurePerl;
-
- $mod = "Digest::SHA::PurePerl";
- $sha = $mod->new($alg);		# alg = 1, 224, 256, 384, 512
-
- $sha->add($data);
- $sha->addfile(*FILE);
-
- $digest = $sha->digest;
- $digest = $sha->hexdigest;
- $digest = $sha->b64digest;
-
- $sha->add_bits($bits);			# bitwise inputs
- $sha->add_bits($data, $nbits);
-
- $sha->dump($filename);			# save/restore SHA states
- $sha->load($filename);
+	# Do the same thing using OOP interface
+	$sha = Digest::SHA::PurePerl->new(1)->add("a")->add("bc");
+	print $sha->hexdigest, "\n";
 
 =head1 SYNOPSIS (HMAC-SHA)
 
- # Functional style only
- use Digest::SHA::PurePerl qw(hmac_sha1 hmac_sha1_hex ... );
+	use Digest::SHA::PurePerl qw(hmac_sha256_hex);
 
- $digest = hmac_sha1($data, $key);
- $digest = hmac_sha1_hex($data, $key);
- $digest = hmac_sha1_base64($data, $key);
-
- $digest = hmac_sha256($data, $key);
- $digest = hmac_sha256_hex($data, $key);
- $digest = hmac_sha256_base64($data, $key);
+	# Construct a simple signature using HMAC-SHA-256
+	$message = "I approved this message";
+	$key = "secret handshake";
+	$signature = hmac_sha256_hex($message, $key);
 
 =head1 ABSTRACT
 
-Digest::SHA::PurePerl is a full implementation of the NIST Secure
-Hash Standard.  It gives Perl programmers a convenient way to
-calculate SHA-1, SHA-224, SHA-256, SHA-384, and SHA-512 message
+Digest::SHA::PurePerl is a complete implementation of the NIST
+Secure Hash Standard.  It gives Perl programmers a convenient way
+to calculate SHA-1, SHA-224, SHA-256, SHA-384, and SHA-512 message
 digests.  The module can handle all types of input, including
 partial-byte data.
 
-A C compiler is not needed to use this module.  Those who do have
-a compiler are B<STRONGLY> urged to install the faster Digest::SHA
-module instead.
-
-Also note that the SHA-384/512 routines are unavailable in
-Digest::SHA::PurePerl unless your Perl uses 64-bit integers.
-
 =head1 DESCRIPTION
 
-Digest::SHA::PurePerl implements all five hashing algorithms of
-the SHA standard (NIST FIPS PUB 180-2).  It offers two ways to
-calculate digests: all-at-once, or in stages.
+Digest::SHA::PurePerl is written entirely in Perl.  If your platform
+has a C compiler, you should install the functionally-equivalent
+(but much faster) L<Digest::SHA> module.
 
-To illustrate, the following short program computes the SHA-256
-digest of "hello world" using each approach:
+The programming interface is easy to use: it's the same one found
+in CPAN's L<Digest> module.  So, if your applications currently
+use L<Digest::MD5> and you'd prefer the stronger security of SHA,
+it's a simple matter to convert them.
+
+The interface provides two ways to calculate digests:  all-at-once,
+or in stages.  To illustrate, the following short program computes
+the SHA-256 digest of "hello world" using each approach:
 
 	use Digest::SHA::PurePerl qw(sha256_hex);
 
@@ -1219,24 +1196,24 @@ digest of "hello world" using each approach:
 	# all-at-once (Functional style)
 	$digest1 = sha256_hex($data);
 
-	# in-stages (OO style)
+	# in-stages (OOP style)
 	$state = Digest::SHA::PurePerl->new(256);
 	for (@frags) { $state->add($_) }
 	$digest2 = $state->hexdigest;
 
 	print $digest1 eq $digest2 ?
-		"whew!\n" : "career in aluminum siding\n";
+		"whew!\n" : "oops!\n";
 
 To calculate the digest of an n-bit message where I<n> is not a
 multiple of 8, use the I<add_bits()> method.  For example, consider
 the 446-bit message consisting of the bit-string "110" repeated
-148 times, followed by "11".  Here's how to calculate its SHA-1
+148 times, followed by "11".  Here's how to display its SHA-1
 digest:
 
 	use Digest::SHA::PurePerl;
-	$mod = "Digest::SHA::PurePerl";
 	$bits = "110" x 148 . "11";
-	$digest = $mod->new(1)->add_bits($bits)->hexdigest;
+	$sha = Digest::SHA::PurePerl->new(1)->add_bits($bits);
+	print $sha->hexdigest, "\n";
 
 Note that for larger bit-strings, it's more efficient to use the
 two-argument version I<add_bits($data, $nbits)>, where I<$data> is
@@ -1244,16 +1221,14 @@ in the customary packed binary format used for Perl strings.
 
 The module also lets you save intermediate SHA states to disk, or
 display them on standard output.  The I<dump()> method generates
-a portable, human-readable text-file describing the current state
-of computation.  You can subsequently retrieve the file with
-I<load()> to resume where the calculation left off.
+portable, human-readable text describing the current state of
+computation.  You can subsequently retrieve the file with I<load()>
+to resume where the calculation left off.
 
-If you're curious about what a state description looks like, just
-run the following:
+To see what a state description looks like, just run the following:
 
 	use Digest::SHA::PurePerl;
-	$mod = "Digest::SHA::PurePerl";
-	$mod->new(256)->add("COL Bat Guano" x 1964)->dump;
+	Digest::SHA::PurePerl->new->add("Shaw" x 1962)->dump;
 
 As an added convenience, the Digest::SHA::PurePerl module offers
 routines to calculate keyed hashes using the HMAC-SHA-1/224/256/384/512
@@ -1261,7 +1236,7 @@ algorithms.  These services exist in functional form only, and
 mimic the style and behavior of the I<sha()>, I<sha_hex()>, and
 I<sha_base64()> functions.
 
-	# test vector from draft-ietf-ipsec-ciph-sha-256-01.txt
+	# Test vector from draft-ietf-ipsec-ciph-sha-256-01.txt
 
 	use Digest::SHA::PurePerl qw(hmac_sha256_hex);
 	print hmac_sha256_hex("Hi There", chr(0x0b) x 32), "\n";
@@ -1272,10 +1247,10 @@ None by default.
 
 =head1 EXPORTABLE FUNCTIONS
 
-Provided your Perl implementation supports 64-bit integers, all of
+Provided your Perl installation supports 64-bit integers, all of
 these functions will be available for use.  Otherwise, you won't
 be able to perform the SHA-384 and SHA-512 transforms, both of
-which require portable 64-bit operations.
+which require 64-bit operations.
 
 I<Functional style>
 
@@ -1322,16 +1297,17 @@ its SHA-1/224/256/384/512 digest encoded as a Base64 string.
 
 =back
 
-I<OO style>
+I<OOP style>
 
 =over 4
 
 =item B<new($alg)>
 
-Returns a new Digest::SHA::PurePerl object.  Values for I<$alg>
-are 1, 224, 256, 384, or 512.  It's also possible to use common
-string representations of the algorithm (e.g. "sha256", "SHA-224").
-If the argument is missing, SHA-1 will be used by default.
+Returns a new Digest::SHA::PurePerl object.  Allowed values for
+I<$alg> are 1, 224, 256, 384, or 512.  It's also possible to use
+common string representations of the algorithm (e.g. "sha256",
+"SHA-384").  If the argument is missing, SHA-1 will be used by
+default.
 
 Invoking I<new> as an instance method will not create a new object;
 instead, it will simply reset the object to the initial state
@@ -1361,9 +1337,9 @@ Returns a duplicate copy of the object.
 
 =item B<add($data, ...)>
 
-Logically joins the arguments into a single string, and uses that
-string to update the current digest state.  In other words, the
-following statements have the same effect:
+Logically joins the arguments into a single string, and uses it to
+update the current digest state.  In other words, the following
+statements have the same effect:
 
 	$sha->add("a"); $sha->add("b"); $sha->add("c");
 	$sha->add("a")->add("b")->add("c");
@@ -1411,7 +1387,7 @@ string, the state information will be written to STDOUT.
 =item B<load($filename)>
 
 Returns a Digest::SHA::PurePerl object representing the intermediate
-SHA state that was previously stored to I<$filename>.  If called
+SHA state that was previously dumped to I<$filename>.  If called
 as a class method, a new object is created; if called as an instance
 method, the object is reset to the state contained in I<$filename>.
 If the argument is missing, or equal to the empty string, the state
@@ -1516,12 +1492,24 @@ L<http://csrc.nist.gov/publications/fips/fips198/fips-198a.pdf>
 
 =head1 AUTHOR
 
-Mark Shelor, E<lt>mshelor@cpan.orgE<gt>
+	Mark Shelor, E<lt>mshelor@cpan.orgE<gt>
 
-The author is particularly grateful to Gisle Aas, Julius Duque,
-Jeffrey Friedl, Robert Gilmour, Brian Gladman, Andy Lester, Alex
-Muntada, Chris Skiscim, Martin Thurn, and Adam Woodbury for their
-valuable comments, suggestions, and technical support.
+=head1 ACKNOWLEDGMENTS
+
+The author is particularly grateful to
+
+	Gisle Aas
+	Julius Duque
+	Jeffrey Friedl
+	Robert Gilmour
+	Brian Gladman
+	Andy Lester
+	Alex Muntada
+	Chris Skiscim
+	Martin Thurn
+	Adam Woodbury
+
+for their valuable comments, suggestions, and technical support.
 
 =head1 COPYRIGHT AND LICENSE
 
