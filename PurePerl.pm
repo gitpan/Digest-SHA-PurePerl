@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.20';
+our $VERSION = '5.21';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -1186,7 +1186,7 @@ partial-byte data.
 =head1 DESCRIPTION
 
 Digest::SHA::PurePerl is written entirely in Perl.  If your platform
-has a C compiler, you should install the functionally-equivalent
+has a C compiler, you should install the functionally equivalent
 (but much faster) L<Digest::SHA> module.
 
 The programming interface is easy to use: it's the same one found

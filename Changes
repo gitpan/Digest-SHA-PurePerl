@@ -1,5 +1,9 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.21  Mon Aug 23 04:02:00 MST 2004
+	- improved test script for "shasum" (t/8-shasum.t)
+		-- exercises check file option (-c)
+
 5.20  Sun Aug 15 04:24:48 MST 2004
 	- introduced "shasum" script
 		-- mimics the usage and behavior of "md5sum"
