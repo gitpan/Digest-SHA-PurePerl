@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.10';
+our $VERSION = '5.20';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -1021,7 +1021,7 @@ sub hmac_sha512_base64 {
 	_hmacbase64($state);
 }
 
-# OO methods
+# OOP methods
 
 sub hashsize {
 	my $self = shift;
@@ -1147,22 +1147,32 @@ Digest::SHA::PurePerl - Perl implementation of SHA-1/224/256/384/512
 
 =head1 SYNOPSIS (SHA)
 
+In programs:
+
 	use Digest::SHA::PurePerl qw(sha1_hex);
 
-	# Display the SHA-1 digest of "abc"
 	print sha1_hex("abc"), "\n";
 
-	# Do the same thing using OOP interface
-	$sha = Digest::SHA::PurePerl->new(1)->add("a")->add("bc");
+		# Do the same thing using OOP interface
+
+	$sha = Digest::SHA::PurePerl->new(1);	
+	$sha->add("a")->add("bc");
 	print $sha->hexdigest, "\n";
+
+From the command line:
+
+	$ perl -e 'print "abc"' | shasum
+
+	$ shasum --help
 
 =head1 SYNOPSIS (HMAC-SHA)
 
 	use Digest::SHA::PurePerl qw(hmac_sha256_hex);
 
-	# Construct a simple signature using HMAC-SHA-256
+		# Construct a simple signature
+
 	$message = "I approved this message";
-	$key = "secret handshake";
+	$key = "my unique fingerprint";
 	$signature = hmac_sha256_hex($message, $key);
 
 =head1 ABSTRACT
@@ -1492,7 +1502,7 @@ L<http://csrc.nist.gov/publications/fips/fips198/fips-198a.pdf>
 
 =head1 AUTHOR
 
-	Mark Shelor, E<lt>mshelor@cpan.orgE<gt>
+	Mark Shelor	<mshelor@cpan.org>
 
 =head1 ACKNOWLEDGMENTS
 
@@ -1509,7 +1519,8 @@ The author is particularly grateful to
 	Martin Thurn
 	Adam Woodbury
 
-for their valuable comments, suggestions, and technical support.
+for offering their valuable comments, suggestions, and technical
+expertise.
 
 =head1 COPYRIGHT AND LICENSE
 

@@ -5,5 +5,6 @@ WriteMakefile(
 	'VERSION_FROM'	=> 'PurePerl.pm',
 	'PREREQ_PM'	=> {},
 	'AUTHOR'	=> 'Mark Shelor <mshelor@cpan.org>',
-	'NO_META'	=> 1
+	'NO_META'	=> 1,
+	'EXE_FILES'	=> [ 'shasum' ]
 );

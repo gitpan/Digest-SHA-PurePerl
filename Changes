@@ -1,5 +1,11 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.20  Sun Aug 15 04:24:48 MST 2004
+	- introduced "shasum" script
+		-- mimics the usage and behavior of "md5sum"
+		-- adds "-a" option to select SHA algorithm
+		-- for help, just type "shasum -h"
+
 5.10  Fri Aug  6 02:10:12 MST 2004
 	- simplified module documentation
 		-- made it consistent with Digest::SHA docs
