@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.25';
+our $VERSION = '5.26';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -1149,31 +1149,52 @@ Digest::SHA::PurePerl - Perl implementation of SHA-1/224/256/384/512
 
 In programs:
 
-	use Digest::SHA::PurePerl qw(sha1_hex);
+		# Functional interface
 
-	print sha1_hex("abc"), "\n";
+	use Digest::SHA::PurePerl qw(sha1 sha1_hex sha1_base64 ...);
 
-		# Do the same thing using OOP interface
+	$digest = sha1($data);
+	$digest = sha1_hex($data);
+	$digest = sha1_base64($data);
 
-	$sha = Digest::SHA::PurePerl->new(1);	
-	$sha->add("a")->add("bc");
-	print $sha->hexdigest, "\n";
+	$digest = sha256($data);
+	$digest = sha384_hex($data);
+	$digest = sha512_base64($data);
+
+		# Object-oriented
+
+	use Digest::SHA::PurePerl;
+
+	$sha = Digest::SHA::PurePerl->new($alg);
+
+	$sha->add($data);		# feed data into stream
+	$sha->addfile(*F);
+	$sha->add_bits($bits);
+	$sha->add_bits($data, $nbits);
+
+	$sha_copy = $sha->clone;	# if needed, make copy of 
+	$sha->dump($file);		#	current digest state,
+	$sha->load($file);		#	or save it on disk
+
+	$digest = $sha->digest;		# compute digest
+	$digest = $sha->hexdigest;
+	$digest = $sha->b64digest;
 
 From the command line:
 
-	$ perl -e 'print "abc"' | shasum
+	$ shasum files
 
 	$ shasum --help
 
 =head1 SYNOPSIS (HMAC-SHA)
 
-	use Digest::SHA::PurePerl qw(hmac_sha256_hex);
+		# Functional interface only
 
-		# Construct a simple signature
+	use Digest::SHA::PurePerl qw(hmac_sha1 hmac_sha1_hex ...);
 
-	$message = "I approved this message";
-	$key = "secret password";
-	$signature = hmac_sha256_hex($message, $key);
+	$digest = hmac_sha1($data, $key);
+	$digest = hmac_sha224_hex($data, $key);
+	$digest = hmac_sha256_base64($data, $key);
 
 =head1 ABSTRACT
 

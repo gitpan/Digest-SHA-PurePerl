@@ -1,5 +1,14 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.26  Thu Oct  7 14:52:00 MST 2004
+	- streamlined distribution
+		-- reduced NIST vector tests from 200 to 20
+			-- former number was overkill
+			-- distro now downloads and builds more quickly
+	- rewrote SYNOPSIS sections in pod file
+	- made additional tweaks to t/8-shasum.t for portability
+	- cleaned up test scripts
+
 5.25  Sun Sep 12 18:48:00 MST 2004
 	- removed non-essential test script
 		-- t/8-shasum.t causes problems on sparc64-linux

@@ -4,7 +4,7 @@ of Standards and Technology (NIST) website at the following URL:
 
 	http://csrc.nist.gov/cryptval/shs.html
 
-The files have been truncated to include only the first 100 test
+The files have been truncated to include only the first 10 test
 cases for bit and byte messages.  This was done solely to decrease
 the size of the module distribution, thereby making downloads much
 quicker for users.  If a more extensive test run is desired, simply

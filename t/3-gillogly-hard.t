@@ -28,21 +28,24 @@ use Digest::SHA::PurePerl;
 #	011#1431655765|0  A3D7438C 589B0B93 2AA91CC2 446F06DF 9ABC73F0
 #	011#1431655765|01 3EEE3E1E 28DEDE2C A444D68D A5675B2F AAAB3203
 
-BEGIN { plan tests => 8 }
+my(@vec110, @vec011);
 
-my @vecs110 = (	# 110 rep 1431655764
-	"11", "1eef5a18969255a3b1793a2a955c7ec28cd221a5",
-	"110", "7a1045b914672aface8d90e6d19b3a6ada3cb879",
-	"1101", "d5e09777a94f1ea9240874c48d9fecb6b634256b",
-	"11011", "eb2569043c3014e51b2862ae6eb5fb4e0b851d99"
-);
+BEGIN { 
+	@vec110 = (	# 110 rep 1431655764
+		"11", "1eef5a18969255a3b1793a2a955c7ec28cd221a5",
+		"110", "7a1045b914672aface8d90e6d19b3a6ada3cb879",
+		"1101", "d5e09777a94f1ea9240874c48d9fecb6b634256b",
+		"11011", "eb2569043c3014e51b2862ae6eb5fb4e0b851d99"
+	);
 
-my @vecs011 = (	# 011 rep 1431655764
-	"01", "4cb0c4ef69143d5bf34fc35f1d4b19f6eccae0f2",
-	"011", "47d92f911fc7bb74de00adfc4e981a8105556d52",
-	"0110", "a3d7438c589b0b932aa91cc2446f06df9abc73f0",
-	"01101", "3eee3e1e28dede2ca444d68da5675b2faaab3203"
-);
+	@vec011 = (	# 011 rep 1431655764
+		"01", "4cb0c4ef69143d5bf34fc35f1d4b19f6eccae0f2",
+		"011", "47d92f911fc7bb74de00adfc4e981a8105556d52",
+		"0110", "a3d7438c589b0b932aa91cc2446f06df9abc73f0",
+		"01101", "3eee3e1e28dede2ca444d68da5675b2faaab3203"
+	);
+	plan tests => scalar(@vec110) / 2 + scalar(@vec011) / 2; 
+}
 
 my $fileSTATE110 = dirname($0) . "/gillogly/state.110";
 my $fileSTATE011 = dirname($0) . "/gillogly/state.011";
@@ -97,15 +100,15 @@ sub state011 {
 my $i;
 
 my $state110 = state110();
-for ($i = 0; $i < @vecs110/2; $i++) {
+for ($i = 0; $i < @vec110/2; $i++) {
 	my $state = $state110->clone;
-	$state->add_bits($vecs110[2*$i]);
-	ok($state->hexdigest, $vecs110[2*$i+1]);
+	$state->add_bits($vec110[2*$i]);
+	ok($state->hexdigest, $vec110[2*$i+1]);
 }
 
 my $state011 = state011();
-for ($i = 0; $i < @vecs011/2; $i++) {
+for ($i = 0; $i < @vec011/2; $i++) {
 	my $state = $state011->clone;
-	$state->add_bits($vecs011[2*$i]);
-	ok($state->hexdigest, $vecs011[2*$i+1]);
+	$state->add_bits($vec011[2*$i]);
+	ok($state->hexdigest, $vec011[2*$i+1]);
 }

@@ -29,30 +29,33 @@ use Digest::SHA::PurePerl;
 #	011#491     : 7C2C3D62 F6AEC28D 94CDF93F 02E739E7 490698A1
 #
 
-BEGIN { plan tests => 12 }
+my(@vec);
 
-my @vecs = (
-	"110",148,"11","ce7387ae577337be54ea94f82c842e8be76bc3e1",
-	"110",149,"","de244f063142cb2f4c903b7f7660577f9e0d8791",
-	"110",149,"1","a3d2982427ae39c8920ca5f499d6c2bd71ebf03c",
-	"110",149,"11","351aab58ff93cf12af7d5a584cfc8f7d81023d10",
-	"110",170,"","996386921e480d4e2955e7275df3522ce8f5ab6e",
-	"110",170,"1","bb5f4ad48913f51b157eb985a5c2034b8243b01b",
-	"110",170,"11","9e92c5542237b957ba2244e8141fdb66dec730a5",
-	"110",171,"","2103e454da4491f4e32dd425a3341dc9c2a90848",
-	"011",490,"","b4b18049de405027528cd9e74b2ec540d4e6f06b",
-	"011",490,"0","34c63356b308742720ab966914eb0fc926e4294b",
-	"011",490,"01","75face1802b9f84f326368ab06e73e0502e9ea34",
-	"011",491,"","7c2c3d62f6aec28d94cdf93f02e739e7490698a1",
-);
+BEGIN { 
+	@vec = (
+		"110",148,"11","ce7387ae577337be54ea94f82c842e8be76bc3e1",
+		"110",149,"","de244f063142cb2f4c903b7f7660577f9e0d8791",
+		"110",149,"1","a3d2982427ae39c8920ca5f499d6c2bd71ebf03c",
+		"110",149,"11","351aab58ff93cf12af7d5a584cfc8f7d81023d10",
+		"110",170,"","996386921e480d4e2955e7275df3522ce8f5ab6e",
+		"110",170,"1","bb5f4ad48913f51b157eb985a5c2034b8243b01b",
+		"110",170,"11","9e92c5542237b957ba2244e8141fdb66dec730a5",
+		"110",171,"","2103e454da4491f4e32dd425a3341dc9c2a90848",
+		"011",490,"","b4b18049de405027528cd9e74b2ec540d4e6f06b",
+		"011",490,"0","34c63356b308742720ab966914eb0fc926e4294b",
+		"011",490,"01","75face1802b9f84f326368ab06e73e0502e9ea34",
+		"011",491,"","7c2c3d62f6aec28d94cdf93f02e739e7490698a1",
+	);
+	plan tests => scalar(@vec) / 4;
+}
 
 my $bitstr;
 my $bitcnt;
 my $ctx = Digest::SHA::PurePerl->new(1);
 
-for (my $i = 0; $i < @vecs/4; $i++) {
-	$bitstr = ($vecs[4*$i] x $vecs[4*$i+1]) . $vecs[4*$i+2];
+for (my $i = 0; $i < @vec/4; $i++) {
+	$bitstr = ($vec[4*$i] x $vec[4*$i+1]) . $vec[4*$i+2];
 	$bitcnt = length($bitstr);
 	$bitstr = pack("B*", $bitstr);
-	ok($ctx->add_bits($bitstr, $bitcnt)->hexdigest, $vecs[4*$i+3]);
+	ok($ctx->add_bits($bitstr, $bitcnt)->hexdigest, $vec[4*$i+3]);
 }

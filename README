@@ -1,4 +1,4 @@
-Digest::SHA::PurePerl version 5.25
+Digest::SHA::PurePerl version 5.26
 ==================================
 
 Digest::SHA::PurePerl is a complete implementation of the NIST
@@ -11,10 +11,8 @@ Digest::SHA::PurePerl is written entirely in Perl.  If your platform
 has a C compiler, you should install the functionally-equivalent
 (but much faster) Digest::SHA module.
 
-Please refer to the tests subdirectory (t/*.t) for an extensive
-set of SHA vectors compiled from various sources.  Of particular
-interest are the NIST vectors, which examine a large variety of
-bit-strings and byte-strings.
+The tests subdirectory (t/*.t) contains an extensive set of SHA
+vectors compiled from various sources.
 
 INSTALLATION
 

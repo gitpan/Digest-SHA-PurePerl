@@ -4,14 +4,14 @@
 	#
 	# Copyright (C) 2003-2004 Mark Shelor, All Rights Reserved
 	#
-	# Version: 5.25
-	# Sun Sep 12 18:48:00 MST 2004
+	# Version: 5.26
+	# Thu Oct  7 14:52:00 MST 2004
 
 
 use strict;
 use Getopt::Long;
 
-my $VERSION = "5.25";
+my $VERSION = "5.26";
 
 
 	# Try to use Digest::SHA, since it's faster.  If not installed,
@@ -139,15 +139,15 @@ my %len2alg = (40 => 1, 56 => 224, 64 => 256, 96 => 384, 128 => 512);
 if ($check) {
 	my $checkfile = shift(@ARGV);
 	my $err = 0;
-	my ($fh, $lnum, $sum, $fname, $rsp);
+	my ($fh, $sum, $fname, $rsp);
 
 	die "shasum: $checkfile: No such file or directory\n"
 		unless open($fh, "<$checkfile");
 	while (<$fh>) {
-		chomp; $lnum++;
+		s/\s+$//;
 		($sum, $binary, $fname) = /^(\S+)\s+(\*?)(.*)$/;
 		unless ($alg = $len2alg{length($sum)}) {
-			print STDERR "shasum: $checkfile: $lnum: improperly ",
+			print STDERR "shasum: $checkfile: $.: improperly ",
 				"formatted SHA checksum line\n" if $warn;
 			next;
 		}

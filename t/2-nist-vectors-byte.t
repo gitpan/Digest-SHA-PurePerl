@@ -18,12 +18,11 @@ BEGIN {
 	my $file = dirname($0) . "/nist/byte-hashes.sha1";
 	my $datafile = File::Spec->canonpath($file);
 	open(F, $datafile);
-	binmode(F);
 	while (<F>) {
-		$_ = substr($_, 0, length($_) - 2);
 		next unless (/^[0-9A-F]/);
+		s/[\r\n]+$//;
 		if (/\^$/) {
-			$_ = substr($_, 0, length($_) - 2);
+			s/\s*\^$//;
 			push(@hashes, $_);
 		}
 	}
@@ -57,16 +56,15 @@ my $ctx = Digest::SHA::PurePerl->new(1);
 my $file = dirname($0) . "/nist/byte-messages.sha1";
 my $datafile = File::Spec->canonpath($file);
 open(F, $datafile);
-binmode(F);
 while (<F>) {
 	$type3 = 1 if (/Type 3/);
 	$type3 = 0 if (/^<D/);
-	$_ = substr($_, 0, length($_) - 2);
 	next unless (/^[0-9^ ]/);
+	s/[\r\n]+$//;
 	$line .= $_;
 	if (/\^$/) {
-		$line = substr($line, 0, length($line) - 1);
-		@cnts = split(' ', $line);
+		$line =~ s/\s*\^$//;
+		@cnts = split(/\s+/, $line);
 		$bitstr = "";
 		$bitval = $cnts[1];
 		for (my $i = 0; $i < $cnts[0]; $i++) {

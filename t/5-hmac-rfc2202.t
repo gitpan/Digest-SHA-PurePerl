@@ -3,17 +3,20 @@ use strict;
 use integer;
 use Digest::SHA::PurePerl qw(hmac_sha1_hex);
 
-BEGIN { plan tests => 7 }
+my(@vec);
 
-my @vecs = (
-	"Hi There",
-	"what do ya want for nothing?",
-	chr(0xdd) x 50,
-	chr(0xcd) x 50,
-	"Test With Truncation",
-	"Test Using Larger Than Block-Size Key - Hash Key First",
-	"Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data"
-);
+BEGIN { 
+	@vec = (
+"Hi There",
+"what do ya want for nothing?",
+chr(0xdd) x 50,
+chr(0xcd) x 50,
+"Test With Truncation",
+"Test Using Larger Than Block-Size Key - Hash Key First",
+"Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data"
+	);
+	plan tests => scalar(@vec);
+}
 
 my @keys = (
 	chr(0x0b) x 20,
@@ -38,9 +41,9 @@ my @hmac1rsp = (
 my $i = 0x01;
 $keys[3] .= chr($i++) while (length($keys[3]) < 25);
 
-for ($i = 0; $i < @vecs; $i++) {
+for ($i = 0; $i < @vec; $i++) {
 	ok(
-		hmac_sha1_hex($vecs[$i], $keys[$i]),
+		hmac_sha1_hex($vec[$i], $keys[$i]),
 		$hmac1rsp[$i]
 	);
 }

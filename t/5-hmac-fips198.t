@@ -3,14 +3,17 @@ use strict;
 use integer;
 use Digest::SHA::PurePerl qw(hmac_sha1_hex);
 
-BEGIN { plan tests => 4 }
+my(@vec);
 
-my @vecs = (
-	"Sample #1",
-	"Sample #2",
-	"Sample #3",
-	"Sample #4"
-);
+BEGIN { 
+	@vec = (
+		"Sample #1",
+		"Sample #2",
+		"Sample #3",
+		"Sample #4"
+	);
+	plan tests => scalar(@vec);
+}
 
 my @keys = ("", "", "", "");
 
@@ -33,9 +36,9 @@ my @hmac1rsp = (
 	"9ea886efe268dbecce420c7524df32e0751a2a26"
 );
 
-for ($i = 0; $i < @vecs; $i++) {
+for ($i = 0; $i < @vec; $i++) {
 	ok(
-		hmac_sha1_hex($vecs[$i], $keys[$i]),
+		hmac_sha1_hex($vec[$i], $keys[$i]),
 		$hmac1rsp[$i]
 	);
 }

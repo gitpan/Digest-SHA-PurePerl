@@ -5,20 +5,23 @@ use strict;
 use integer;
 use Digest::SHA::PurePerl qw(hmac_sha256_hex);
 
-BEGIN { plan tests => 10 }
+my(@data);
 
-my @data = (
-	"abc",
-	"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-	"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopqabcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-	"Hi There",
-	"what do ya want for nothing?",
-	chr(0xdd) x 50,
-	chr(0xcd) x 50,
-	"Test With Truncation",
-	"Test Using Larger Than Block-Size Key - Hash Key First",
-	"Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data"
-);
+BEGIN { 
+	@data = (
+"abc",
+"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopqabcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+"Hi There",
+"what do ya want for nothing?",
+chr(0xdd) x 50,
+chr(0xcd) x 50,
+"Test With Truncation",
+"Test Using Larger Than Block-Size Key - Hash Key First",
+"Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data"
+	);
+	plan tests => scalar(@data);
+}
 
 my $k1 = pack("H*", "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20");
 my $k2 = pack("H*", "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425");
@@ -49,7 +52,7 @@ my @hmac256rsp = (
 	"6355ac22e890d0a3c8481a5ca4825bc884d3e7a1ff98a2fc2ac7d8e064c3b2e6"
 );
 
-# do the first one by hand to test multi-argument data feed
+	# do the first one by hand to test multi-argument data feed
 
 ok(hmac_sha256_hex("a", "b", "c", $k1), $hmac256rsp[0]);
 
