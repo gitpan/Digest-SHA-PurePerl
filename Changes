@@ -1,5 +1,13 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+0.03  Fri Jun 25 00:06:54 MST 2004
+	- portability fix
+		-- dump files caused warnings on 64-bit platforms
+		-- enhanced "dump-load.t" to check correct behavior
+	- performance tweak for 64-bit machines
+		-- eliminated upper-32-bit masking on left shifts
+		-- instead, need to mask only in _digcpy and _shadump
+
 0.02  Tue Jun 22 04:24:00 MST 2004
 	- Increased speed of SHA transforms
 		-- using optimization ideas from Digest::SHA package

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -88,14 +88,16 @@ my @H0256 = (			# SHA-256 initial hash value
 
 sub _c_SL32 {			# code to shift $x left by $n bits
 	my($x, $n) = @_;
-	my $mask = (1 << 16) << 16 ? " & $MAX32" : "";
-	"(($x << $n)$mask)";
+	"($x << $n)";		# even works for 64-bit integers
+				# since the upper 32 bits are
+				# eventually discarded in _digcpy
 }
 
 sub _c_SR32 {			# code to shift $x right by $n bits
 	my($x, $n) = @_;
 	my $mask = (1 << (32 - $n)) - 1;
-	"(($x >> $n) & $mask)";
+	"(($x >> $n) & $mask)";		# Perl does arithmetic shift, so	
+					# explicitly clear upper bits
 }
 
 sub _c_Ch { my($x, $y, $z) = @_; "($z ^ ($x & ($y ^ $z)))" }
@@ -277,12 +279,12 @@ my $sha256_code =
 	@W = unpack("N16", $block);
 	($a, $b, $c, $d, $e, $f, $g, $h) = @{$self->{H}};
 ' .
-	_c_M21('$W[ 0]')  . _c_M22('$W[ 1]')  . _c_M23('$W[ 2]')  .
-	_c_M24('$W[ 3]')  . _c_M25('$W[ 4]')  . _c_M26('$W[ 5]')  .
-	_c_M27('$W[ 6]')  . _c_M28('$W[ 7]')  . _c_M21('$W[ 8]')  .
-	_c_M22('$W[ 9]')  . _c_M23('$W[10]')  . _c_M24('$W[11]')  .
-	_c_M25('$W[12]')  . _c_M26('$W[13]')  . _c_M27('$W[14]')  .
-	_c_M28('$W[15]')  .
+	_c_M21('$W[ 0]' ) . _c_M22('$W[ 1]' ) . _c_M23('$W[ 2]' ) .
+	_c_M24('$W[ 3]' ) . _c_M25('$W[ 4]' ) . _c_M26('$W[ 5]' ) .
+	_c_M27('$W[ 6]' ) . _c_M28('$W[ 7]' ) . _c_M21('$W[ 8]' ) .
+	_c_M22('$W[ 9]' ) . _c_M23('$W[10]' ) . _c_M24('$W[11]' ) .
+	_c_M25('$W[12]' ) . _c_M26('$W[13]' ) . _c_M27('$W[14]' ) .
+	_c_M28('$W[15]' ) .
 	_c_M21(_c_A2( 0)) . _c_M22(_c_A2( 1)) . _c_M23(_c_A2( 2)) .
 	_c_M24(_c_A2( 3)) . _c_M25(_c_A2( 4)) . _c_M26(_c_A2( 5)) .
 	_c_M27(_c_A2( 6)) . _c_M28(_c_A2( 7)) . _c_M21(_c_A2( 8)) .
@@ -332,6 +334,7 @@ sub _BYTECNT {
 sub _digcpy {
 	my($self) = @_;
 	my $fmt = "N" . ($self->{digestlen} >> 2);
+	for (@{$self->{H}}) { $_ &= $MAX32 }
 	$self->{digest} = pack($fmt, @{$self->{H}});
 }
 
@@ -472,23 +475,21 @@ sub _shafinish {
 	use integer;
 	$self->{sha}->($self, $self->{block});
 	$self->{blockcnt} = 0;
+	_digcpy($self);
 }
 
 sub _shadigest {
 	my($self) = @_;
-	_digcpy($self);
 	$self->{digest};
 }
 
 sub _shahex {
 	my($self) = @_;
-	_digcpy($self);
 	join("", unpack("H*", $self->{digest}));
 }
 
 sub _shabase64 {
 	my($self) = @_;
-	_digcpy($self);
 	my $b64 = pack("u", $self->{digest});
 	$b64 =~ s/^.//mg;
 	$b64 =~ s/\n//g;
@@ -528,7 +529,7 @@ sub _shadump {
 	open(F, ">$file") or return;
 	printf F "alg:%d\n", $self->{alg};
 	printf F "H";
-	for (@{$self->{H}}) { printf F ":%08x", $_ }
+	for (@{$self->{H}}) { $_ &= $MAX32; printf F ":%08x", $_ }
 	printf F "\n";
 	printf F "block";
 	my @c = unpack("C*", $self->{block});

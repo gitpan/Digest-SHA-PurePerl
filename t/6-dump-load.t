@@ -13,8 +13,10 @@ my @sharsp = (
 );
 
 my @ext = (1, 256);
-my $data = "a" x 999998;
+my $data = "a" x 990000;
 my $skip;
+my $tmpname = dirname($0) . "/dumpload.tmp";
+my $tmpfile = File::Spec->canonpath($tmpname);
 
 for (my $i = 0; $i < 2; $i++) {
 	my $digest;
@@ -29,7 +31,9 @@ for (my $i = 0; $i < 2; $i++) {
 		$state->dump($file);
 		$state->load($file);
 	}
-	$state->add_bits($data, 16);
+	$state->add_bits($data, 79984)->dump($tmpfile);
+	$state->load($tmpfile)->add_bits($data, 16);
+	unlink($tmpfile);
 	$digest = $state->hexdigest;
 	ok($digest, $sharsp[$i]);
 }
