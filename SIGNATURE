@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.40.
+signed via the Module::Signature module, version 0.41.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,12 +14,12 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 cba5c843ebb99578e35bbcf9b77fb7e95ba2a100 Changes
-SHA1 9d737a8ad67a13a278884afc6ca7e2e48c7d93b2 MANIFEST
-SHA1 74e3e635be4efcda6aeef720e871237905792b0c META.yml
+SHA1 53b11b16e9417cab5de69aa0975dc15fed989e2c Changes
+SHA1 0812f45a3b45e7280934af9448295f0573548058 MANIFEST
+SHA1 2e22c432266ae27dff6cf467ccbe203dcafe29b2 META.yml
 SHA1 42b87857c15c4e30397f5a5d729b7bce124584e5 Makefile.PL
-SHA1 aef0d715ae0c8d4b549fce4e862a24ccfd2310b3 PurePerl.pm
-SHA1 8ad13380928bc760642260f5a235f3f2e325c2b7 README
+SHA1 8de861996b0cab78e317930771dbfb4c5ccf5403 PurePerl.pm
+SHA1 e0c41091b25e9a209ebc9676ff6ffbeb8638df4b README
 SHA1 16666f488a4f8ca3a52d68a38e7761ce1e83b971 t/1-exist.t
 SHA1 3a39814b482cb737ed4cb7de6b97ef70b572705e t/1-hello-world.t
 SHA1 04e47d6c02807b06b03118b156bd2a49ccbff9e2 t/2-nist-sha-1.t
@@ -39,6 +39,7 @@ SHA1 dd7352b16ed4a2fdfbebc4aa53167d2ae0437eac t/4-bitstr-random.t
 SHA1 bb0ea094ba6b0129c2cd76bfc63d2abe47c90572 t/5-hmac-fips198.t
 SHA1 3088a161465e1a31529f7ddbfc2ede796001f40c t/5-hmac-rfc2202.t
 SHA1 d516a834fca05dcab80dd4a6a12bfd068a8d28c5 t/5-hmac-sha-256.t
+SHA1 6d8d2d518ff2865f91d88fed0498fbe732f9c6ee t/5-hmac-woodbury.t
 SHA1 5f093e34f9a1fe299193ad09e62db7f45ddeb1fd t/6-dump-load.t
 SHA1 6c22344eb9163271c94aa2e060a638f1f936470a t/7-ireland.t
 SHA1 d6bd2384003f9f5b3c43aaa0a9fb74838d41b30c t/gillogly/state.011
@@ -56,7 +57,7 @@ SHA1 69cd49d84cb11c83ef8e6eb36f6a472edb37079d t/state/state.512
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.2.4 (Darwin)
 
-iD8DBQFA5UXhBwNg/wr1Y/4RAoBBAKDZ0Zt1/FMG6QgVl9GxFf3+Vw5LQwCfdPoq
-RQKiipcuB5VP/vdKL35Vb2k=
-=aYi6
+iD8DBQFBDMzXBwNg/wr1Y/4RAtFrAKCTxmvcl19IVjdADmoIhMOXXgq8agCgnMZa
+wNXJrXCDAQ+DSiPVXrSWEag=
+=LkK7
 -----END PGP SIGNATURE-----

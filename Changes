@@ -1,5 +1,13 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+0.05  Sun Aug  1 03:56:54 MST 2004
+	- fixed HMAC-SHA-384/512 bug
+		-- code was using hardwired blocksize of SHA-1/256
+	- added test cases to check HMAC-SHA-384/512 behavior
+		-- thanks to Adam Woodbury for vectors and script mods
+	- corrected misspelling in docs
+		-- apologies to Gisle Aas
+
 0.04  Fri Jul  2 01:10:48 MST 2004
 	- added support for SHA-384/512
 		-- module now offers full functionality of Digest::SHA

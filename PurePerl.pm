@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -719,11 +719,12 @@ sub _shaload {
 	my $self = _shaopen(shift(@f)) or return;
 
 	@f = _match(*F, "H") or return;
-	if ($self->{alg} > 256) {
-		@{$self->{H}} = map { ((hex(substr($_, 0, 8)) << 16) << 16) |
-					hex(substr($_, 8, 8)) } @f;
-	}
-	else { @{$self->{H}} = map { hex($_) } @f }
+	my $numxdigits = $self->{alg} <= 256 ? 8 : 16;
+	for (@f) { $_ = "0" . $_ while length($_) < $numxdigits }
+	for (@f) { $_ = substr($_, 1) while length($_) > $numxdigits }
+	@{$self->{H}} = map { $self->{alg} <= 256 ? hex($_) :
+		((hex(substr($_, 0, 8)) << 16) << 16) |
+		hex(substr($_, 8)) } @f;
 
 	@f = _match(*F, "block") or return;
 	for (@f) { $self->{block} .= chr(hex($_)) }
@@ -857,18 +858,19 @@ sub _hmacopen {
 	my($self);
 	$self->{isha} = _shaopen($alg) or return;
 	$self->{osha} = _shaopen($alg) or return;
-	if (length($key) > 64) {
+	if (length($key) > $self->{osha}->{blocksize} >> 3) {
 		$self->{ksha} = _shaopen($alg) or return;
 		_shawrite($key, length($key) << 3, $self->{ksha});
 		_shafinish($self->{ksha});
 		$key = _shadigest($self->{ksha});
 	}
-	$key .= chr(0x00) while length($key) < 64;
+	$key .= chr(0x00)
+		while length($key) < $self->{osha}->{blocksize} >> 3;
 	my @k = unpack("C*", $key);
 	for (@k) { $_ ^= 0x5c }
-	_shawrite(pack("C*", @k), 512, $self->{osha});
+	_shawrite(pack("C*", @k), $self->{osha}->{blocksize}, $self->{osha});
 	for (@k) { $_ ^= (0x5c ^ 0x36) }
-	_shawrite(pack("C*", @k), 512, $self->{isha});
+	_shawrite(pack("C*", @k), $self->{isha}->{blocksize}, $self->{isha});
 	$self;
 }
 
@@ -1175,21 +1177,24 @@ Digest::SHA::PurePerl - Perl implementation of SHA-1/224/256/384/512
 
 =head1 ABSTRACT
 
-Digest::SHA::PurePerl is a pure Perl implementation of the SHA-1,
-SHA-224, SHA-256, SHA-384, and SHA-512 algorithms of the NIST Secure
-Hash Standard.  Note, however, that the latter two algorithms are
-supported only if your Perl uses 64-bit integers.  A C compiler is
-not needed to use this module.
+Digest::SHA::PurePerl is a full implementation of the NIST Secure
+Hash Standard.  It gives Perl programmers a convenient way to
+calculate SHA-1, SHA-224, SHA-256, SHA-384, and SHA-512 message
+digests.  The module can handle all types of input, including
+partial-byte data.
 
-Those who do have a C compiler are B<STRONGLY> urged to use the
-Digest::SHA module instead.  The latter module is much faster, and
-includes broader support for the SHA-384 and SHA-512 algorithms.
+A C compiler is not needed to use this module.  Those who do have
+a compiler are B<STRONGLY> urged to install the faster Digest::SHA
+module instead.
+
+Also note that the SHA-384/512 routines are unavailable in
+Digest::SHA::PurePerl unless your Perl uses 64-bit integers.
 
 =head1 DESCRIPTION
 
-Digest::SHA::PurePerl implements all hashing algorithms of the SHA
-standard (NIST FIPS PUB 180-2).  It offers two ways to calculate
-digests: all-at-once, or in stages.
+Digest::SHA::PurePerl implements all five hashing algorithms of
+the SHA standard (NIST FIPS PUB 180-2).  It offers two ways to
+calculate digests: all-at-once, or in stages.
 
 To illustrate, the following short program computes the SHA-256
 digest of "hello world" using each approach:
@@ -1330,7 +1335,7 @@ I<reset> is just an alias for I<new>.
 
 Returns the number of digest bits for this object.  The values are
 160, 224, 256, 384, and 512 for SHA-1, SHA-224, SHA-256, SHA-384,
-and SHA-512 respectively.
+and SHA-512, respectively.
 
 =item B<algorithm>
 
@@ -1487,7 +1492,7 @@ in the list.
 
 =head1 SEE ALSO
 
-L<Digest>, L<Digest::SHA>, L<Digest::SHA1>, L<Digest::SHA2>
+L<Digest>, L<Digest::SHA>
 
 The Secure Hash Standard (FIPS PUB 180-2) can be found at:
 
@@ -1501,10 +1506,10 @@ L<http://csrc.nist.gov/publications/fips/fips198/fips-198a.pdf>
 
 Mark Shelor, E<lt>mshelor@cpan.orgE<gt>
 
-The author is particularly grateful to Gisle Ass, Julius Duque,
+The author is particularly grateful to Gisle Aas, Julius Duque,
 Jeffrey Friedl, Robert Gilmour, Brian Gladman, Andy Lester, Alex
-Muntada, Chris Skiscim, and Martin Thurn for their valuable comments,
-suggestions, and technical support.
+Muntada, Chris Skiscim, Martin Thurn, and Adam Woodbury for their
+valuable comments, suggestions, and technical support.
 
 =head1 COPYRIGHT AND LICENSE
 
