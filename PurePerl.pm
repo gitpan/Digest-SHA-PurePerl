@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -366,41 +366,47 @@ no warnings;	# suppress warnings for non-portable 64-bit constants
 
 use warnings;
 
-sub _SL64 {
+sub _c_SL64 {
 	my($x, $n) = @_;
-	$x << $n;
+	"($x << $n)";
 }
 
-sub _SR64 {
+sub _c_SR64 {
 	my($x, $n) = @_;
-	($x >> $n) & ((1 << (64 - $n)) - 1);
+	my $mask = (1 << (64 - $n)) - 1;
+	"(($x >> $n) & $mask)";
 }
 
-sub _ROTRQ {
+sub _c_ROTRQ {
 	my($x, $n) = @_;
-	_SR64($x, $n) | _SL64($x, 64 - $n);
+	"(" . _c_SR64($x, $n) . " | " . _c_SL64($x, 64 - $n) . ")";
 }
 
-sub _SIGMAQ0 {
+sub _c_SIGMAQ0 {
 	my($x) = @_;
-	_ROTRQ($x, 28) ^ _ROTRQ($x, 34) ^ _ROTRQ($x, 39);
+	"(" . _c_ROTRQ($x, 28) . " ^ " .  _c_ROTRQ($x, 34) . " ^ " .
+		_c_ROTRQ($x, 39) . ")";
 }
 
-sub _SIGMAQ1 {
+sub _c_SIGMAQ1 {
 	my($x) = @_;
-	_ROTRQ($x, 14) ^ _ROTRQ($x, 18) ^ _ROTRQ($x, 41);
+	"(" . _c_ROTRQ($x, 14) . " ^ " .  _c_ROTRQ($x, 18) . " ^ " .
+		_c_ROTRQ($x, 41) . ")";
 }
 
-sub _sigmaQ0 {
+sub _c_sigmaQ0 {
 	my($x) = @_;
-	_ROTRQ($x,  1) ^ _ROTRQ($x,  8) ^ _SR64($x,  7);
+	"(" . _c_ROTRQ($x, 1) . " ^ " .  _c_ROTRQ($x, 8) . " ^ " .
+		_c_SR64($x, 7) . ")";
 }
 
-sub _sigmaQ1 {
+sub _c_sigmaQ1 {
 	my($x) = @_;
-	_ROTRQ($x, 19) ^ _ROTRQ($x, 61) ^ _SR64($x,  6);
+	"(" . _c_ROTRQ($x, 19) . " ^ " .  _c_ROTRQ($x, 61) . " ^ " .
+		_c_SR64($x, 6) . ")";
 }
 
+my $sha512_code = q/
 sub _sha512 {
 	my($self, $block) = @_;
 	my(@N, @W, $a, $b, $c, $d, $e, $f, $g, $h, $T1, $T2);
@@ -408,12 +414,15 @@ sub _sha512 {
 	@N = unpack("N32", $block);
 	($a, $b, $c, $d, $e, $f, $g, $h) = @{$self->{H}};
 	for ( 0 .. 15) { $W[$_] = (($N[2*$_] << 16) << 16) | $N[2*$_+1] }
-	for (16 .. 79) { $W[$_] = _sigmaQ1($W[$_-2]) + $W[$_-7] +
-				_sigmaQ0($W[$_-15]) + $W[$_-16] }
+	for (16 .. 79) { $W[$_] = / . 
+		_c_sigmaQ1(q/$W[$_- 2]/) . q/ + $W[$_- 7] + / . 
+		_c_sigmaQ0(q/$W[$_-15]/) . q/ + $W[$_-16] }
 	for ( 0 .. 79) {
-		$T1 = $h + _SIGMAQ1($e) + (($g) ^ (($e) & (($f) ^ ($g)))) +
-			$K512[$_] + $W[$_];
-		$T2 = _SIGMAQ0($a) + ((($a) & ($b)) | (($c) & (($a) | ($b))));
+		$T1 = $h + / . _c_SIGMAQ1(q/$e/) . 
+			q/ + (($g) ^ (($e) & (($f) ^ ($g)))) +
+				$K512[$_] + $W[$_];
+		$T2 = / . _c_SIGMAQ0(q/$a/) .
+			q/ + ((($a) & ($b)) | (($c) & (($a) | ($b))));
 		$h = $g; $g = $f; $f = $e; $e = $d + $T1;
 		$d = $c; $c = $b; $b = $a; $a = $T1 + $T2;
 	}
@@ -421,6 +430,9 @@ sub _sha512 {
 	$self->{H}->[3] += $d; $self->{H}->[4] += $e; $self->{H}->[5] += $f;
 	$self->{H}->[6] += $g; $self->{H}->[7] += $h;
 }
+/;
+
+eval($sha512_code);
 
 $sha512 = \&_sha512;
 

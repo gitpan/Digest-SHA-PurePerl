@@ -1,5 +1,11 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+0.06  Tue Aug  3 02:12:40 MST 2004
+	- improved performance of SHA-384/512
+		-- using inline eval'ed code instead of subroutines
+		-- 5.7 x faster than Version 0.05
+			-- on alpha-dec_osf, using Gisle's benchmark
+
 0.05  Sun Aug  1 03:56:54 MST 2004
 	- fixed HMAC-SHA-384/512 bug
 		-- code was using hardwired blocksize of SHA-1/256
