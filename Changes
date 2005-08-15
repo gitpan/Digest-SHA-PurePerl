@@ -1,5 +1,8 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.29  Sun Aug 14 04:48:34 MST 2005
+	- updated docs with cautionary note about SHA-1
+
 5.28  Wed Nov 10 15:33:20 MST 2004
 	- provided more flexible formatting of SHA state files
 		-- entries may now contain embedded whitespace

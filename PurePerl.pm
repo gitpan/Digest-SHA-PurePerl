@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.28';
+our $VERSION = '5.29';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -1273,6 +1273,15 @@ I<sha_base64()> functions.
 	use Digest::SHA::PurePerl qw(hmac_sha256_hex);
 	print hmac_sha256_hex("Hi There", chr(0x0b) x 32), "\n";
 
+=head1 CAUTIONARY NOTE
+
+Technically speaking, SHA-1 has been broken: collisions can be found
+in 2**69 operations instead of the 2**80 operations suggested by
+its hash length.  However, since 2**69 is a very large number, it's
+extremely difficult for an adversary to exploit the break.  Nonetheless,
+current users of SHA-1 may wish to consider migrating to SHA-256
+for security-critical applications.
+
 =head1 EXPORT
 
 None by default.
@@ -1547,7 +1556,7 @@ expertise.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2004 Mark Shelor
+Copyright (C) 2003-2005 Mark Shelor
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

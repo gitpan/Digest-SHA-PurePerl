@@ -1,12 +1,12 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.41.
+signed via the Module::Signature module, version 0.44.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
 
     % cpansign -v
 
-It would check each file's integrity, as well as the signature's
+It will check each file's integrity, as well as the signature's
 validity.  If "==> Signature verified OK! <==" is not displayed,
 the distribution may already have been compromised, and you should
 not run its Makefile.PL or Build.PL.
@@ -14,13 +14,13 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 62a6f54586c212d319ec907db0fd8d5dad625789 Changes
+SHA1 f09a9ef3507ceb3fab46f3f56f58006e0cc6b31c Changes
 SHA1 59c610971d56e4944affd7d88acfb117d075c5e0 MANIFEST
-SHA1 cd4758e285d9dd2f2738fe26177cc76e7a5cebad META.yml
+SHA1 1c7ee492b296dfbba11f4d5d7f7fea3048ef0245 META.yml
 SHA1 53e985f713cbdae5868135e5077f08d8dcc8ef64 Makefile.PL
-SHA1 cdb1e8e290c2fdc96a44d2dac16315df107b362b PurePerl.pm
-SHA1 ff1b8cd3ae18f208ecca409e9651aa9e92f1d4ed README
-SHA1 4fef81c47e41a6dba3398e6a205b855792f66946 shasum
+SHA1 7c04dff855d7b0862ff80bac3b9f18893c58c354 PurePerl.pm
+SHA1 e9ae731708cf2bd3c54ca1c19c0a57a8e8b9f68a README
+SHA1 8711f9e0d35c99430a282f651d4cfdb3a04b0146 shasum
 SHA1 a29b3beffa291139639c78a884ec727ecadeed8e t/1-exist.t
 SHA1 248164406fc1e8d0cf2429b8f31bfca19200e70c t/1-hello-world.t
 SHA1 81ac61b193b45e9a92f137babbddb0ad3346cd8a t/2-nist-sha-1.t
@@ -56,9 +56,9 @@ SHA1 cc3d0feffc019e4651fb085e7bc51e190e58fa53 t/state/state.256
 SHA1 2130ee8086bc7bf41fc329e9d87a81e2d98b68c8 t/state/state.384
 SHA1 69cd49d84cb11c83ef8e6eb36f6a472edb37079d t/state/state.512
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.2.4 (Darwin)
+Version: GnuPG v1.4.0 (Darwin)
 
-iD8DBQFBmw1ZBwNg/wr1Y/4RAoq2AKDuCe1L6G+raUgztnix+StbdyFwEACgxuGk
-zhoNY6dg/kehzELY9uWiTSk=
-=ZbH7
+iD8DBQFC/y/hBwNg/wr1Y/4RAm04AKDTextM4L54ZCgRYzS4sRbejXTl/wCdGbWP
+ZiZLcypgzzp+ccMZTeO/j2o=
+=2pOI
 -----END PGP SIGNATURE-----
