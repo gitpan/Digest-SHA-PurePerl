@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.29';
+our $VERSION = '5.30';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -1273,14 +1273,21 @@ I<sha_base64()> functions.
 	use Digest::SHA::PurePerl qw(hmac_sha256_hex);
 	print hmac_sha256_hex("Hi There", chr(0x0b) x 32), "\n";
 
-=head1 CAUTIONARY NOTE
+=head1 NIST STATEMENT ON SHA-1
 
-Technically speaking, SHA-1 has been broken: collisions can be found
-in 2**69 operations instead of the 2**80 operations suggested by
-its hash length.  However, since 2**69 is a very large number, it's
-extremely difficult for an adversary to exploit the break.  Nonetheless,
-current users of SHA-1 may wish to consider migrating to SHA-256
-for security-critical applications.
+I<NIST was recently informed that researchers had discovered a way
+to "break" the current Federal Information Processing Standard SHA-1
+algorithm, which has been in effect since 1994. The researchers
+have not yet published their complete results, so NIST has not
+confirmed these findings. However, the researchers are a reputable
+research team with expertise in this area.>
+
+I<Due to advances in computing power, NIST already planned to phase
+out SHA-1 in favor of the larger and stronger hash functions (SHA-224,
+SHA-256, SHA-384 and SHA-512) by 2010. New developments should use
+the larger and stronger hash functions.>
+
+ref. L<http://www.csrc.nist.gov/pki/HashWorkshop/NIST%20Statement/Burr_Mar2005.html>
 
 =head1 EXPORT
 
