@@ -4,14 +4,14 @@
 	#
 	# Copyright (C) 2003-2005 Mark Shelor, All Rights Reserved
 	#
-	# Version: 5.30
-	# Sat Aug 20 16:46:08 MST 2005
+	# Version: 5.31
+	# Mon Sep  5 00:52:42 MST 2005
 
 
 use strict;
 use Getopt::Long;
 
-my $VERSION = "5.30";
+my $VERSION = "5.31";
 
 
 	# Try to use Digest::SHA, since it's faster.  If not installed,

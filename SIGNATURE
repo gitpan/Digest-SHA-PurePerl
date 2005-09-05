@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.44.
+signed via the Module::Signature module, version 0.50.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,13 +14,15 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 7f683ec5d292f9c4592a7ff5baf9a5c3ae9c9cf2 Changes
-SHA1 59c610971d56e4944affd7d88acfb117d075c5e0 MANIFEST
-SHA1 a0e28328a98368b1b2a5a286c5b99c55d5354592 META.yml
+SHA1 a83fe2cc1d5751004779aef9b6754cba1e2904b0 Changes
+SHA1 d958eefd10cd8f59e35d035b4d4192783e512eb5 MANIFEST
+SHA1 cdcac577cec1166baecd7e54ffe6857e7efa2cfa META.yml
 SHA1 53e985f713cbdae5868135e5077f08d8dcc8ef64 Makefile.PL
-SHA1 ec1d0071449262c1db9ecf91f99369b858ad6d0c PurePerl.pm
-SHA1 bc02d1a0082398c8c2fba4f7c134510aeec0aeea README
-SHA1 4e220d49cd06246c7b1302ff9269b2af7cfa940e shasum
+SHA1 f2d3ff8ec818be581ca52fe1aaa5188181ac9dd1 PurePerl.pm
+SHA1 6a73dfb33d72bf16c4aa635e83b9a6d73d89bd77 README
+SHA1 d8faf01f83da1fedb6659364fd470adc98f65c10 shasum
+SHA1 967f80d84992336cfc5c72757531aa6ff0926948 t/0-pod-coverage.t
+SHA1 e9c6a5881fc60173fbc8d479c1afd2ce3b43bef1 t/0-pod.t
 SHA1 a29b3beffa291139639c78a884ec727ecadeed8e t/1-exist.t
 SHA1 248164406fc1e8d0cf2429b8f31bfca19200e70c t/1-hello-world.t
 SHA1 81ac61b193b45e9a92f137babbddb0ad3346cd8a t/2-nist-sha-1.t
@@ -29,7 +31,7 @@ SHA1 1928ed7224d2369fdd4a16aa0d22f0e69cc6eb4a t/2-nist-sha-256.t
 SHA1 b570a19ed589e28923f8eb3d9c7ecd3870963e7e t/2-nist-sha-384.t
 SHA1 528779a6eef9c15697c19d6bdd2984e5c91ef930 t/2-nist-sha-512.t
 SHA1 9730fec4fca775acb4ea4da7a5c5ffa8ad551378 t/2-nist-sha-base64.t
-SHA1 764291368397b0d617086b55eb0ba7fe5f1e7a38 t/2-nist-sha-oo.t
+SHA1 f36917ec9c351e9c1f727756851b8827ece04571 t/2-nist-sha-oo.t
 SHA1 b811fd72813b9a3601cad42ed5851a84634648be t/2-nist-vectors-bit.t
 SHA1 d1a5baeea634bb284c009dd718d4f2348d20721a t/2-nist-vectors-byte.t
 SHA1 20d1074e71681487867a7f9a7c6451522fabee2d t/3-gillogly-easy.t
@@ -58,7 +60,7 @@ SHA1 69cd49d84cb11c83ef8e6eb36f6a472edb37079d t/state/state.512
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.0 (Darwin)
 
-iD8DBQFDB8D5BwNg/wr1Y/4RAt3RAJ90GoCEKiSZtZzaDtWz75k9cdg7ZACg0NoO
-J38MB8kj9U/ncJwkbt2cTYo=
-=UXSz
+iD8DBQFDG/mFBwNg/wr1Y/4RAlAeAJ9eHflfeeAhf99at5E8s0ints+rDgCfSUf/
+ZCo8odiF0DqGoYpm/XC12HM=
+=VI7x
 -----END PGP SIGNATURE-----

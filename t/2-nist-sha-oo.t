@@ -13,8 +13,13 @@ BEGIN {
 "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"
 	);
 
-	plan tests => scalar(@vec);
+	plan tests => 1 + scalar(@vec);
 }
+
+	# attempt to use an invalid algorithm, and check for failure
+
+my $NSA = "SHA-42";	# No Such Algorithm
+ok(Digest::SHA::PurePerl->new($NSA), undef);
 
 	# test OO methods using first two SHA-256 vectors from NIST
 

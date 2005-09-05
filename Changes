@@ -1,5 +1,14 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.31  Mon Sep  5 00:52:42 MST 2005
+	- added standard tests for pod and pod-coverage checking
+	- inserted subtest to check for failure when using
+		unrecognized SHA algorithm
+	- consolidated code for SHA and HMAC-SHA functions
+		-- removed 190 lines by building functions at runtime
+	- harmonized _sharewind and _shaopen subs with C versions
+		-- other minor code cleanups
+
 5.30  Sat Aug 20 16:46:08 MST 2005
 	- updated docs with recent NIST statement on SHA-1
 		-- advises use of larger and stronger hash functions

@@ -6,6 +6,8 @@ PurePerl.pm
 README
 shasum
 SIGNATURE
+t/0-pod-coverage.t
+t/0-pod.t
 t/1-exist.t
 t/1-hello-world.t
 t/2-nist-sha-1.t

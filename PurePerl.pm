@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.30';
+our $VERSION = '5.31';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -81,16 +81,12 @@ my @H0256 = (			# SHA-256 initial hash value
 	0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
 );
 
-# Routines with a "_c_" prefix create Perl code-fragments that are
-# eval-ed at initialization.  This technique emulates the behavior
-# of the C preprocessor, thereby allowing the optimized transform
-# code from Digest::SHA to be more easily rendered in Perl.
-#
-# BTW, all these gyrations with cryptic runtime code generation
-# result in a 20% performance increase compared to the initial
-# version, which was MUCH easier to understand.  Normally, such a
-# trade-off wouldn't be worth it.  But given the workhorse nature
-# of digest computation routines, an exception was made here.
+my(@H0384, @H0512);
+
+# Routines with a "_c_" prefix return Perl code-fragments which are
+# eval'ed at initialization.  This technique emulates the behavior
+# of the C preprocessor, allowing the optimized transform code from
+# Digest::SHA to be more easily translated into Perl.
 
 sub _c_SL32 {			# code to shift $x left by $n bits
 	my($x, $n) = @_;
@@ -102,8 +98,8 @@ sub _c_SL32 {			# code to shift $x left by $n bits
 sub _c_SR32 {			# code to shift $x right by $n bits
 	my($x, $n) = @_;
 	my $mask = (1 << (32 - $n)) - 1;
-	"(($x >> $n) & $mask)";		# Perl does arithmetic shift, so	
-					# explicitly clear upper bits
+	"(($x >> $n) & $mask)";		# "use integer" does arithmetic
+					# shift, so clear upper bits
 }
 
 sub _c_Ch { my($x, $y, $z) = @_; "($z ^ ($x & ($y ^ $z)))" }
@@ -316,8 +312,6 @@ my $sha256_code =
 
 eval($sha256_code);
 
-my(@K512, @H0384, @H0512);
-
 sub _sha512_placeholder { return }
 my $sha512 = \&_sha512_placeholder;
 
@@ -325,7 +319,7 @@ my $_64bit_code = '
 
 no warnings;	# suppress warnings triggered by 64-bit constants
 
-@K512 = (
+my @K512 = (
 	0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f,
 	0xe9b5dba58189dbbc, 0x3956c25bf348b538, 0x59f111f1b605d019,
 	0x923f82a4af194f9b, 0xab1c5ed5da6d8118, 0xd807aa98a3030242,
@@ -366,10 +360,7 @@ no warnings;	# suppress warnings triggered by 64-bit constants
 
 use warnings;
 
-sub _c_SL64 {
-	my($x, $n) = @_;
-	"($x << $n)";
-}
+sub _c_SL64 { my($x, $n) = @_; "($x << $n)" }
 
 sub _c_SR64 {
 	my($x, $n) = @_;
@@ -433,7 +424,6 @@ sub _sha512 {
 /;
 
 eval($sha512_code);
-
 $sha512 = \&_sha512;
 
 ';
@@ -463,57 +453,26 @@ sub _BYTECNT {
 
 sub _digcpy {
 	my($self) = @_;
-	my $fmt = "N" . ($self->{digestlen} >> 2);
-	if ($self->{alg} <= 256) {
-		for (@{$self->{H}}) { $_ &= $MAX32 }
-		$self->{digest} = pack($fmt, @{$self->{H}});
+	my @dig;
+	for (@{$self->{H}}) {
+		push(@dig, (($_>>16)>>16) & $MAX32) if $self->{alg} >= 384;
+		push(@dig, $_ & $MAX32);
 	}
-	else {
-		my @D;
-		for (@{$self->{H}}) {
-			push(@D, (($_ >> 16) >> 16) & $MAX32);
-			push(@D, $_ & $MAX32);
-		}
-		$self->{digest} = pack($fmt, @D);
-	}
+	$self->{digest} = pack("N" . ($self->{digestlen}>>2), @dig);
 }
 
 sub _sharewind {
 	my($self) = @_;
+	my $alg = $self->{alg};
 	$self->{block} = ""; $self->{blockcnt} = 0;
+	$self->{blocksize} = $alg <= 256 ? 512 : 1024;
 	no integer; $self->{len} = 0; use integer;
-	if ($self->{alg} == 1) {
-		$self->{sha} = \&_sha1;
-		$self->{H} = [@H01];
-		$self->{blocksize} = 512;
-		$self->{digestlen} = 20;
-	}
-	elsif ($self->{alg} == 224) {
-		$self->{sha} = \&_sha256;
-		$self->{H} = [@H0224];
-		$self->{blocksize} = 512;
-		$self->{digestlen} = 28;
-	}
-	elsif ($self->{alg} == 256) {
-		$self->{sha} = \&_sha256;
-		$self->{H} = [@H0256];
-		$self->{blocksize} = 512;
-		$self->{digestlen} = 32;
-	}
-	elsif (!$is64bit) { return }
-	elsif ($self->{alg} == 384) {
-		$self->{sha} = $sha512;
-		$self->{H} = [@H0384];
-		$self->{blocksize} = 1024;
-		$self->{digestlen} = 48;
-	}
-	elsif ($self->{alg} == 512) {
-		$self->{sha} = $sha512;
-		$self->{H} = [@H0512];
-		$self->{blocksize} = 1024;
-		$self->{digestlen} = 64;
-	}
-	else { return }
+	$self->{digestlen} = $alg == 1 ? 20 : $alg/8;
+	if    ($alg == 1)   { $self->{sha} = \&_sha1;   $self->{H} = [@H01]   }
+	elsif ($alg == 224) { $self->{sha} = \&_sha256; $self->{H} = [@H0224] }
+	elsif ($alg == 256) { $self->{sha} = \&_sha256; $self->{H} = [@H0256] }
+	elsif ($alg == 384) { $self->{sha} = $sha512;   $self->{H} = [@H0384] }
+	elsif ($alg == 512) { $self->{sha} = $sha512;   $self->{H} = [@H0512] }
 	push(@{$self->{H}}, 0) while scalar(@{$self->{H}}) < 8;
 	$self;
 }
@@ -521,6 +480,8 @@ sub _sharewind {
 sub _shaopen {
 	my($alg) = @_;
 	my($self);
+	return unless grep { $alg == $_ } (1, 224, 256, 384, 512);
+	return if ($alg >= 384 && !$is64bit);
 	$self->{alg} = $alg;
 	_sharewind($self);
 }
@@ -594,15 +555,10 @@ sub _shawrite {
 	my($bitstr, $bitcnt, $self) = @_;
 	return(0) if ($bitcnt == 0);
 	no integer; $self->{len} += $bitcnt; use integer;
-	if ($self->{blockcnt} == 0) {
-		return(_shadirect($bitstr, $bitcnt, $self));
-	}
-	elsif ($self->{blockcnt} % 8 == 0) {
-		return(_shabytes($bitstr, $bitcnt, $self));
-	}
-	else {
-		return(_shabits($bitstr, $bitcnt, $self));
-	}
+	my $blockcnt = $self->{blockcnt};
+	return(_shadirect($bitstr, $bitcnt, $self)) if $blockcnt == 0;
+	return(_shabytes ($bitstr, $bitcnt, $self)) if $blockcnt % 8 == 0;
+	return(_shabits  ($bitstr, $bitcnt, $self));
 }
 
 sub _shafinish {
@@ -633,21 +589,19 @@ sub _shafinish {
 	use integer;
 	$self->{sha}->($self, $self->{block});
 	$self->{blockcnt} = 0;
-	_digcpy($self);
 }
 
-sub _shadigest {
-	my($self) = @_;
-	$self->{digest};
-}
+sub _shadigest { my($self) = @_; _digcpy($self); $self->{digest} }
 
 sub _shahex {
 	my($self) = @_;
+	_digcpy($self);
 	join("", unpack("H*", $self->{digest}));
 }
 
 sub _shabase64 {
 	my($self) = @_;
+	_digcpy($self);
 	my $b64 = pack("u", $self->{digest});
 	$b64 =~ s/^.//mg;
 	$b64 =~ s/\n//g;
@@ -657,10 +611,7 @@ sub _shabase64 {
 	$b64;
 }
 
-sub _shadsize {
-	my($self) = @_;
-	$self->{digestlen};
-}
+sub _shadsize { my($self) = @_; $self->{digestlen} }
 
 sub _shacpy {
 	my($to, $from) = @_;
@@ -675,37 +626,33 @@ sub _shacpy {
 	$to;
 }
 
-sub _shadup {
-	my($self) = @_;
-	my($copy);
-	_shacpy($copy, $self);
-}
+sub _shadup { my($self) = @_; my($copy); _shacpy($copy, $self) }
 
 sub _shadump {
-	my $file = shift || "-";
+	my $file = shift || "-"; open(F, ">$file") or return;
+
 	my $self = shift;
-	open(F, ">$file") or return;
+	my $is32bit = $self->{alg} <= 256;
+	my $fmt = $is32bit ? ":%08x" : ":%016x";
+
 	printf F "alg:%d\n", $self->{alg};
+
 	printf F "H";
-	if ($self->{alg} <= 256) {
-		for (@{$self->{H}}) { printf F ":%08x",  $_ & $MAX32 }
-	}
-	else {
-		for (@{$self->{H}}) { printf F ":%016x", $_ }
-	}
-	printf F "\n";
-	printf F "block";
+	for (@{$self->{H}}) { printf F $fmt, $is32bit ? $_ & $MAX32 : $_ }
+
+	printf F "\nblock";
 	my @c = unpack("C*", $self->{block});
 	push(@c, 0x00) while scalar(@c) < ($self->{blocksize} >> 3);
 	for (@c) { printf F ":%02x", $_ }
-	printf F "\n";
-	printf F "blockcnt:%u\n", $self->{blockcnt};
+
+	printf F "\nblockcnt:%u\n", $self->{blockcnt};
+
 	no integer;
-		printf F "lenhh:%lu\n", 0;
-		printf F "lenhl:%lu\n", 0;
+		printf F "lenhh:%lu\nlenhl:%lu\n", 0, 0;
 		printf F "lenlh:%lu\n", $self->{len} / $TWO32;
 		printf F "lenll:%lu\n", $self->{len} % $TWO32;
 	use integer;
+
 	close(F);
 	$self;
 }
@@ -725,8 +672,7 @@ sub _match {
 }
 
 sub _shaload {
-	my $file = shift || "-";
-	open(F, "<$file") or return;
+	my $file = shift || "-"; open(F, "<$file") or return;
 
 	my @f = _match(*F, "alg") or return;
 	my $self = _shaopen(shift(@f)) or return;
@@ -755,113 +701,6 @@ sub _shaload {
 
 	close(F);
 	$self;
-}
-
-# SHA functions
-
-sub sha1 {
-	my $state = _shaopen(1) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shadigest($state);
-}
-
-sub sha1_hex {
-	my $state = _shaopen(1) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shahex($state);
-}
-
-sub sha1_base64 {
-	my $state = _shaopen(1) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shabase64($state);
-}
-
-sub sha224 {
-	my $state = _shaopen(224) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shadigest($state);
-}
-
-sub sha224_hex {
-	my $state = _shaopen(224) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shahex($state);
-}
-
-sub sha224_base64 {
-	my $state = _shaopen(224) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shabase64($state);
-}
-
-sub sha256 {
-	my $state = _shaopen(256) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shadigest($state);
-}
-
-sub sha256_hex {
-	my $state = _shaopen(256) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shahex($state);
-}
-
-sub sha256_base64 {
-	my $state = _shaopen(256) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shabase64($state);
-}
-
-sub sha384 {
-	my $state = _shaopen(384) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shadigest($state);
-}
-
-sub sha384_hex {
-	my $state = _shaopen(384) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shahex($state);
-}
-
-sub sha384_base64 {
-	my $state = _shaopen(384) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shabase64($state);
-}
-
-sub sha512 {
-	my $state = _shaopen(512) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shadigest($state);
-}
-
-sub sha512_hex {
-	my $state = _shaopen(512) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shahex($state);
-}
-
-sub sha512_base64 {
-	my $state = _shaopen(512) or return;
-	for (@_) { _shawrite($_, length($_) << 3, $state) }
-	_shafinish($state);
-	_shabase64($state);
 }
 
 # ref. src/hmac.c from Digest::SHA
@@ -900,139 +739,38 @@ sub _hmacfinish {
 	_shafinish($self->{osha});
 }
 
-sub _hmacdigest {
-	my($self) = @_;
-	_shadigest($self->{osha});
-}
+sub _hmacdigest { my($self) = @_; _shadigest($self->{osha}) }
+sub _hmachex    { my($self) = @_; _shahex($self->{osha})    }
+sub _hmacbase64 { my($self) = @_; _shabase64($self->{osha}) }
 
-sub _hmachex {
-	my($self) = @_;
-	_shahex($self->{osha});
-}
+# SHA and HMAC-SHA functions
 
-sub _hmacbase64 {
-	my($self) = @_;
-	_shabase64($self->{osha});
-}
+my @suffix_extern = ("", "_hex", "_base64");
+my @suffix_intern = ("digest", "hex", "base64");
 
-# HMAC-SHA functions
-
-sub hmac_sha1 {
-	my $state = _hmacopen(1, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacdigest($state);
-}
-
-sub hmac_sha1_hex {
-	my $state = _hmacopen(1, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmachex($state);
-}
-
-sub hmac_sha1_base64 {
-	my $state = _hmacopen(1, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacbase64($state);
-}
-
-sub hmac_sha224 {
-	my $state = _hmacopen(224, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacdigest($state);
-}
-
-sub hmac_sha224_hex {
-	my $state = _hmacopen(224, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmachex($state);
-}
-
-sub hmac_sha224_base64 {
-	my $state = _hmacopen(224, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacbase64($state);
-}
-
-sub hmac_sha256 {
-	my $state = _hmacopen(256, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacdigest($state);
-}
-
-sub hmac_sha256_hex {
-	my $state = _hmacopen(256, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmachex($state);
-}
-
-sub hmac_sha256_base64 {
-	my $state = _hmacopen(256, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacbase64($state);
-}
-
-sub hmac_sha384 {
-	my $state = _hmacopen(384, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacdigest($state);
-}
-
-sub hmac_sha384_hex {
-	my $state = _hmacopen(384, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmachex($state);
-}
-
-sub hmac_sha384_base64 {
-	my $state = _hmacopen(384, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacbase64($state);
-}
-
-sub hmac_sha512 {
-	my $state = _hmacopen(512, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacdigest($state);
-}
-
-sub hmac_sha512_hex {
-	my $state = _hmacopen(512, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmachex($state);
-}
-
-sub hmac_sha512_base64 {
-	my $state = _hmacopen(512, pop(@_)) or return;
-	for (@_) { _hmacwrite($_, length($_) << 3, $state) }
-	_hmacfinish($state);
-	_hmacbase64($state);
+for my $alg (1, 224, 256, 384, 512) {
+	for my $i (0 .. 2) {
+		my $fcn = 'sub sha' . $alg . $suffix_extern[$i] . ' {
+			my $state = _shaopen(' . $alg . ') or return;
+			for (@_) { _shawrite($_, length($_) << 3, $state) }
+			_shafinish($state);
+			_sha' . $suffix_intern[$i] . '($state);
+		}';
+		eval($fcn);
+		$fcn = 'sub hmac_sha' . $alg . $suffix_extern[$i] . ' {
+			my $state = _hmacopen(' . $alg . ', pop(@_)) or return;
+			for (@_) { _hmacwrite($_, length($_) << 3, $state) }
+			_hmacfinish($state);
+			_hmac' . $suffix_intern[$i] . '($state);
+		}';
+		eval($fcn);
+	}
 }
 
 # OOP methods
 
-sub hashsize {
-	my $self = shift;
-	_shadsize($self) << 3;
-}
-
-sub algorithm {
-	my $self = shift;
-	$self->{alg};
-}
+sub hashsize  { my $self = shift; _shadsize($self) << 3 }
+sub algorithm { my $self = shift; $self->{alg} }
 
 sub add {
 	my $self = shift;
@@ -1558,8 +1296,7 @@ The author is particularly grateful to
 	Martin Thurn
 	Adam Woodbury
 
-for offering their valuable comments, suggestions, and technical
-expertise.
+for their valuable comments and suggestions.
 
 =head1 COPYRIGHT AND LICENSE
 
