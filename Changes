@@ -1,5 +1,11 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.32  Fri Dec  2 02:32:20 MST 2005
+	- added POD section to shasum script
+		-- thanks to Gunnar Wolf for patch
+	- inserted code in test scripts for POD checking
+		-- to recover gracefully if Test::More isn't installed
+
 5.31  Mon Sep  5 00:52:42 MST 2005
 	- added standard tests for pod and pod-coverage checking
 	- inserted subtest to check for failure when using

@@ -4,22 +4,11 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.31';
+our $VERSION = '5.32';
 
 require Exporter;
 our @ISA = qw(Exporter);
-
-our @EXPORT_OK = qw(
-	hmac_sha1	hmac_sha1_base64	hmac_sha1_hex
-	hmac_sha224	hmac_sha224_base64	hmac_sha224_hex
-	hmac_sha256	hmac_sha256_base64	hmac_sha256_hex
-	hmac_sha384	hmac_sha384_base64	hmac_sha384_hex
-	hmac_sha512	hmac_sha512_base64	hmac_sha512_hex
-	sha1		sha1_base64		sha1_hex
-	sha224		sha224_base64		sha224_hex
-	sha256		sha256_base64		sha256_hex
-	sha384		sha384_base64		sha384_hex
-	sha512		sha512_base64		sha512_hex);
+our @EXPORT_OK = ();		# see "SHA and HMAC-SHA functions" below
 
 # If possible, inherit from Digest::base (which depends on MIME::Base64)
 
@@ -34,14 +23,12 @@ if ($@) {
 	*b64digest = \&_b64digest;
 }
 
-# Preloaded methods go here.
-
 # ref. src/sha.c and sha/sha64bit.c from Digest::SHA
 
 my $MAX32 = 0xffffffff;
 my $TWO32 = 4294967296;
 
-my $is64bit = (((1 << 16) << 16) << 16) << 15;
+my $uses64bit = (((1 << 16) << 16) << 16) << 15;
 
 my($K1, $K2, $K3, $K4) = (	# SHA-1 constants
 	0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6
@@ -81,7 +68,7 @@ my @H0256 = (			# SHA-256 initial hash value
 	0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
 );
 
-my(@H0384, @H0512);
+my(@H0384, @H0512);		# filled in later if $uses64bit
 
 # Routines with a "_c_" prefix return Perl code-fragments which are
 # eval'ed at initialization.  This technique emulates the behavior
@@ -428,22 +415,22 @@ $sha512 = \&_sha512;
 
 ';
 
-eval($_64bit_code) if $is64bit;
+eval($_64bit_code) if $uses64bit;
 
 sub _SETBIT {
-	my($bitstr, $pos) = @_;
-	my @c = unpack("C*", $bitstr);
+	my($self, $pos) = @_;
+	my @c = unpack("C*", $self->{block});
 	$c[$pos >> 3] = 0x00 unless defined $c[$pos >> 3];
 	$c[$pos >> 3] |= (0x01 << (7 - $pos % 8));
-	pack("C*", @c);
+	$self->{block} = pack("C*", @c);
 }
 
 sub _CLRBIT {
-	my($bitstr, $pos) = @_;
-	my @c = unpack("C*", $bitstr);
+	my($self, $pos) = @_;
+	my @c = unpack("C*", $self->{block});
 	$c[$pos >> 3] = 0x00 unless defined $c[$pos >> 3];
 	$c[$pos >> 3] &= ~(0x01 << (7 - $pos % 8));
-	pack("C*", @c);
+	$self->{block} = pack("C*", @c);
 }
 
 sub _BYTECNT {
@@ -481,7 +468,7 @@ sub _shaopen {
 	my($alg) = @_;
 	my($self);
 	return unless grep { $alg == $_ } (1, 224, 256, 384, 512);
-	return if ($alg >= 384 && !$is64bit);
+	return if ($alg >= 384 && !$uses64bit);
 	$self->{alg} = $alg;
 	_sharewind($self);
 }
@@ -553,7 +540,7 @@ sub _shabits {
 
 sub _shawrite {
 	my($bitstr, $bitcnt, $self) = @_;
-	return(0) if ($bitcnt == 0);
+	return(0) unless $bitcnt > 0;
 	no integer; $self->{len} += $bitcnt; use integer;
 	my $blockcnt = $self->{blockcnt};
 	return(_shadirect($bitstr, $bitcnt, $self)) if $blockcnt == 0;
@@ -564,31 +551,26 @@ sub _shawrite {
 sub _shafinish {
 	my($self) = @_;
 	my $LENPOS = $self->{alg} <= 256 ? 448 : 896;
-	$self->{block} = _SETBIT($self->{block}, $self->{blockcnt}++);
+	_SETBIT($self, $self->{blockcnt}++);
 	while ($self->{blockcnt} > $LENPOS) {
-		if ($self->{blockcnt} == $self->{blocksize}) {
+		if ($self->{blockcnt} < $self->{blocksize}) {
+			_CLRBIT($self, $self->{blockcnt}++);
+		}
+		else {
 			$self->{sha}->($self, $self->{block});
 			$self->{block} = "";
 			$self->{blockcnt} = 0;
 		}
-		else {
-			$self->{block} =
-				_CLRBIT($self->{block}, $self->{blockcnt}++);
-		}
 	}
 	while ($self->{blockcnt} < $LENPOS) {
-		$self->{block} = _CLRBIT($self->{block}, $self->{blockcnt}++);
+		_CLRBIT($self, $self->{blockcnt}++);
 	}
-	if ($self->{blocksize} > 512) {
-		$self->{block} .= pack("N", 0);
-		$self->{block} .= pack("N", 0);
-	}
+	$self->{block} .= pack("NN", 0, 0) if $self->{blocksize} > 512;
 	no integer;
 		$self->{block} .= pack("N", int($self->{len} / $TWO32));
 		$self->{block} .= pack("N", $self->{len} % $TWO32);
 	use integer;
 	$self->{sha}->($self, $self->{block});
-	$self->{blockcnt} = 0;
 }
 
 sub _shadigest { my($self) = @_; _digcpy($self); $self->{digest} }
@@ -757,6 +739,7 @@ for my $alg (1, 224, 256, 384, 512) {
 			_sha' . $suffix_intern[$i] . '($state);
 		}';
 		eval($fcn);
+		push(@EXPORT_OK, 'sha' . $alg . $suffix_extern[$i]);
 		$fcn = 'sub hmac_sha' . $alg . $suffix_extern[$i] . ' {
 			my $state = _hmacopen(' . $alg . ', pop(@_)) or return;
 			for (@_) { _hmacwrite($_, length($_) << 3, $state) }
@@ -764,6 +747,7 @@ for my $alg (1, 224, 256, 384, 512) {
 			_hmac' . $suffix_intern[$i] . '($state);
 		}';
 		eval($fcn);
+		push(@EXPORT_OK, 'hmac_sha' . $alg . $suffix_extern[$i]);
 	}
 }
 
@@ -1294,6 +1278,7 @@ The author is particularly grateful to
 	Alex Muntada
 	Chris Skiscim
 	Martin Thurn
+	Gunnar Wolf
 	Adam Woodbury
 
 for their valuable comments and suggestions.

@@ -4,14 +4,53 @@
 	#
 	# Copyright (C) 2003-2005 Mark Shelor, All Rights Reserved
 	#
-	# Version: 5.31
-	# Mon Sep  5 00:52:42 MST 2005
+	# Version: 5.32
+	# Fri Dec  2 02:32:20 MST 2005
 
+=head1 NAME
+
+shasum - Print or Check SHA Checksums
+
+=head1 SYNOPSIS
+
+ Usage: shasum [OPTION] [FILE]...
+    or: shasum [OPTION] --check [FILE]
+ Print or check SHA checksums.
+ With no FILE, or when FILE is -, read standard input.
+
+  -a, --algorithm    1 (default), 224, 256, 384, 512
+  -b, --binary       read files in binary mode (default on DOS/Windows)
+  -c, --check        check SHA sums against given list
+  -t, --text         read files in text mode (default)
+
+ The following two options are useful only when verifying checksums:
+
+      --status       don't output anything, status code shows success
+  -w, --warn         warn about improperly formatted SHA checksum lines
+
+      --help         display this help and exit
+      --version      output version information and exit
+
+The sums are computed as described in FIPS PUB 180-2.  When checking,
+the input should be a former output of this program.  The default
+mode is to print a line with checksum, a character indicating type
+(`*' for binary, ` ' for text), and name for each FILE.
+
+=head1 AUTHOR
+
+Copyright (c) 2003-2005 Mark Shelor <mshelor@cpan.org>.
+
+=head1 SEE ALSO
+
+Shasum is implemented using the Perl module L<Digest::SHA> or
+L<Digest::SHA::PurePerl>.
+
+=cut
 
 use strict;
 use Getopt::Long;
 
-my $VERSION = "5.31";
+my $VERSION = "5.32";
 
 
 	# Try to use Digest::SHA, since it's faster.  If not installed,
@@ -42,17 +81,17 @@ Usage: shasum [OPTION] [FILE]...
 Print or check SHA checksums.
 With no FILE, or when FILE is -, read standard input.
 
-  -a, --algorithm         1 (default), 224, 256, 384, 512
-  -b, --binary            read files in binary mode (default on DOS/Windows)
-  -c, --check             check SHA sums against given list
-  -t, --text              read files in text mode (default)
+  -a, --algorithm    1 (default), 224, 256, 384, 512
+  -b, --binary       read files in binary mode (default on DOS/Windows)
+  -c, --check        check SHA sums against given list
+  -t, --text         read files in text mode (default)
 
 The following two options are useful only when verifying checksums:
-      --status            don't output anything, status code shows success
-  -w, --warn              warn about improperly formatted MD5 checksum lines
+      --status       don't output anything, status code shows success
+  -w, --warn         warn about improperly formatted SHA checksum lines
 
-      --help              display this help and exit
-      --version           output version information and exit
+      --help         display this help and exit
+      --version      output version information and exit
 
 The sums are computed as described in FIPS PUB 180-2.  When checking,
 the input should be a former output of this program.  The default

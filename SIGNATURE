@@ -14,15 +14,15 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 a83fe2cc1d5751004779aef9b6754cba1e2904b0 Changes
+SHA1 2f50ebfd5fe4828afb3da7abd4419ed045fdf397 Changes
 SHA1 d958eefd10cd8f59e35d035b4d4192783e512eb5 MANIFEST
-SHA1 cdcac577cec1166baecd7e54ffe6857e7efa2cfa META.yml
+SHA1 711d49e56f915ce7d98597c58d1ec37b15aab9ae META.yml
 SHA1 53e985f713cbdae5868135e5077f08d8dcc8ef64 Makefile.PL
-SHA1 f2d3ff8ec818be581ca52fe1aaa5188181ac9dd1 PurePerl.pm
-SHA1 6a73dfb33d72bf16c4aa635e83b9a6d73d89bd77 README
-SHA1 d8faf01f83da1fedb6659364fd470adc98f65c10 shasum
-SHA1 967f80d84992336cfc5c72757531aa6ff0926948 t/0-pod-coverage.t
-SHA1 e9c6a5881fc60173fbc8d479c1afd2ce3b43bef1 t/0-pod.t
+SHA1 79218fd1044f324d5812a9dd6e6470f85479aa10 PurePerl.pm
+SHA1 bae1570c1f7470a7efabf343e499e769a35ebab8 README
+SHA1 4fa482ab1615e7668067755241cf76e93cf78d38 shasum
+SHA1 744eb5921881757f528c823aac9fd0c0d52d4ff1 t/0-pod-coverage.t
+SHA1 308ce1bdbb89141d83ffc0470c7f9207286c5be4 t/0-pod.t
 SHA1 a29b3beffa291139639c78a884ec727ecadeed8e t/1-exist.t
 SHA1 248164406fc1e8d0cf2429b8f31bfca19200e70c t/1-hello-world.t
 SHA1 81ac61b193b45e9a92f137babbddb0ad3346cd8a t/2-nist-sha-1.t
@@ -60,7 +60,7 @@ SHA1 69cd49d84cb11c83ef8e6eb36f6a472edb37079d t/state/state.512
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.0 (Darwin)
 
-iD8DBQFDG/mFBwNg/wr1Y/4RAlAeAJ9eHflfeeAhf99at5E8s0ints+rDgCfSUf/
-ZCo8odiF0DqGoYpm/XC12HM=
-=VI7x
+iD8DBQFDkBVeBwNg/wr1Y/4RAsp1AJ9ffWGB8t05eZHdtdrRUDsiWF9U6wCfbXqZ
+hDM7lMmcYTjTiXRDsGRE/2c=
+=sOsb
 -----END PGP SIGNATURE-----
