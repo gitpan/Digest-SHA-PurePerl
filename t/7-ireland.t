@@ -4,6 +4,13 @@ use File::Basename qw(dirname);
 use File::Spec;
 use Digest::SHA::PurePerl;
 
+BEGIN {
+	if ($ENV{PERL_CORE}) {
+		chdir 't' if -d 't';
+		@INC = '../lib';
+	}
+}
+
 # David Ireland's test vector - SHA-256 digest of "a" x 536870912
 
 # Adapted from Julius Duque's original script (t/24-ireland.tmp)
@@ -11,7 +18,7 @@ use Digest::SHA::PurePerl;
 
 BEGIN { plan tests => 1 }
 
-my $filename = dirname($0) . "/ireland.tmp";
+my $filename = File::Spec->catfile(dirname($0), "ireland.tmp");
 my $file = File::Spec->canonpath($filename);
 open(F, ">$file"); while (<DATA>) { print F $_ }  close(F);
 

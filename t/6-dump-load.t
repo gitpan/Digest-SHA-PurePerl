@@ -5,9 +5,16 @@ use Digest::SHA::PurePerl qw(sha384_hex sha512_hex);
 use File::Basename qw(dirname);
 use File::Spec;
 
+BEGIN {
+	if ($ENV{PERL_CORE}) {
+		chdir 't' if -d 't';
+		@INC = '../lib';
+	}
+}
+
 my(@sharsp);
 
-BEGIN { 
+BEGIN {
 	@sharsp = (
 "34aa973cd4c4daa4f61eeb2bdbad27316534016f",
 "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0",
@@ -20,7 +27,7 @@ BEGIN {
 my @ext = (1, 256, 384, 512);
 my $data = "a" x 990000;
 my $skip;
-my $tmpname = dirname($0) . "/dumpload.tmp";
+my $tmpname = File::Spec->catfile(dirname($0), "dumpload.tmp");
 my $tmpfile = File::Spec->canonpath($tmpname);
 
 for (my $i = 0; $i < @sharsp; $i++) {
@@ -36,7 +43,8 @@ for (my $i = 0; $i < @sharsp; $i++) {
 		my $state;
 		my $file;
 		my $filename;
-		$filename = dirname($0) . "/state/state.$ext[$i]";
+		$filename = File::Spec->catfile(dirname($0),
+			"state", "state.$ext[$i]");
 		$file = File::Spec->canonpath($filename);
 		unless ($state = Digest::SHA::PurePerl->load($file)) {
 			$state = Digest::SHA::PurePerl->new($ext[$i]);

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.32';
+our $VERSION = '5.34';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -1276,6 +1276,7 @@ The author is particularly grateful to
 	Brian Gladman
 	Andy Lester
 	Alex Muntada
+	Steve Peters
 	Chris Skiscim
 	Martin Thurn
 	Gunnar Wolf
@@ -1285,7 +1286,7 @@ for their valuable comments and suggestions.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2005 Mark Shelor
+Copyright (C) 2003-2006 Mark Shelor
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

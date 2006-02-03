@@ -7,6 +7,13 @@ use strict;
 use integer;
 use Digest::SHA::PurePerl;
 
+BEGIN {
+	if ($ENV{PERL_CORE}) {
+		chdir 't' if -d 't';
+		@INC = '../lib';
+	}
+}
+
 #	SHA-1 Test Vectors
 #
 #	In the following we use the notation bitstring#n to mean a bitstring
@@ -31,7 +38,7 @@ use Digest::SHA::PurePerl;
 
 my(@vec);
 
-BEGIN { 
+BEGIN {
 	@vec = (
 		"110",148,"11","ce7387ae577337be54ea94f82c842e8be76bc3e1",
 		"110",149,"","de244f063142cb2f4c903b7f7660577f9e0d8791",

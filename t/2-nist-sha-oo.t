@@ -5,9 +5,16 @@ use File::Basename qw(dirname);
 use File::Spec;
 use Digest::SHA::PurePerl;
 
+BEGIN {
+	if ($ENV{PERL_CORE}) {
+		chdir 't' if -d 't';
+		@INC = '../lib';
+	}
+}
+
 my(@vec);
 
-BEGIN { 
+BEGIN {
 	@vec = (
 "ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0",
 "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"
@@ -23,7 +30,7 @@ ok(Digest::SHA::PurePerl->new($NSA), undef);
 
 	# test OO methods using first two SHA-256 vectors from NIST
 
-my $temp = dirname($0) . "/oo.tmp";
+my $temp = File::Spec->catfile(dirname($0), "oo.tmp");
 my $file = File::Spec->canonpath($temp);
 open(FILE, ">$file");
 binmode(FILE);

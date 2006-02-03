@@ -5,9 +5,16 @@ use strict;
 use integer;
 use Digest::SHA::PurePerl qw(hmac_sha256_hex);
 
+BEGIN {
+	if ($ENV{PERL_CORE}) {
+		chdir 't' if -d 't';
+		@INC = '../lib';
+	}
+}
+
 my(@data);
 
-BEGIN { 
+BEGIN {
 	@data = (
 "abc",
 "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",

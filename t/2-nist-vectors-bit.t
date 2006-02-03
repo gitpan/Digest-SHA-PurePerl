@@ -12,10 +12,17 @@ use File::Basename qw(dirname);
 use File::Spec;
 use Digest::SHA::PurePerl;
 
+BEGIN {
+	if ($ENV{PERL_CORE}) {
+		chdir 't' if -d 't';
+		@INC = '../lib';
+	}
+}
+
 my @hashes;
 
 BEGIN {
-	my $file = dirname($0) . "/nist/bit-hashes.sha1";
+	my $file = File::Spec->catfile(dirname($0), "nist", "bit-hashes.sha1");
 	my $datafile = File::Spec->canonpath($file);
 	open(F, $datafile);
 	while (<F>) {
@@ -53,7 +60,7 @@ my $hash;
 my $type3 = 0;
 my $ctx = Digest::SHA::PurePerl->new(1);
 
-my $file = dirname($0) . "/nist/bit-messages.sha1";
+my $file = File::Spec->catfile(dirname($0), "nist", "bit-messages.sha1");
 my $datafile = File::Spec->canonpath($file);
 open(F, $datafile);
 while (<F>) {
