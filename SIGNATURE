@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.50.
+signed via the Module::Signature module, version 0.53.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,13 +14,13 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 d7b075b1f8e6c8cbc7dc9f846a796419d250e362 Changes
+SHA1 75afeaa1bf3982d6075bdfaaf32cac52834192a5 Changes
 SHA1 d958eefd10cd8f59e35d035b4d4192783e512eb5 MANIFEST
-SHA1 eb37b8e70757d2177a5a33dbdc1c2578db404ab0 META.yml
-SHA1 53e985f713cbdae5868135e5077f08d8dcc8ef64 Makefile.PL
-SHA1 5e7cfb80b7211d52b83163a90fceb62501203eab PurePerl.pm
-SHA1 b9d8aa802f2bffce6981cd43006e068c78098e1d README
-SHA1 3feeaa9113148ee3bff0073c7d0aa7977652581d shasum
+SHA1 1ea2ab283684c2ee4aea7e5b396ffe71f54a4e01 META.yml
+SHA1 e7c5a41faf9b01b8794abc100b54d8100b3116e9 Makefile.PL
+SHA1 df629cc499c8195b9a1b090ff2e5bd3eb4601d45 PurePerl.pm
+SHA1 101bbcf94af836e12ea0171135d1c1ec86e2df9d README
+SHA1 6d165406df411bb37018b2612c721afe26698012 shasum
 SHA1 59df577769c4a1cd184d6034b8576dfb1e32f752 t/0-pod-coverage.t
 SHA1 38ccb5f60fe9f45d127602067f072458fc1797d5 t/0-pod.t
 SHA1 627754202b2dd4909558afa92b585662cd1e7e12 t/1-exist.t
@@ -48,19 +48,19 @@ SHA1 96fb4b3866d188e523368c0731eb2e4ff7606a15 t/7-ireland.t
 SHA1 636d5e987243f6634fdc1dff1fe1d11d07778347 t/gillogly/state.011
 SHA1 b1e86af6b46e066555bbcd749982ccba816cf744 t/gillogly/state.110
 SHA1 427874bceb58bc3a36b5808a204023334614930b t/nist/COPYRIGHT
-SHA1 573d7d4bba50c5cecb4a86f1ffff14d764a31ecb t/nist/Readme.txt
-SHA1 7996bb1a434fb3f6fd38f64800ab3b2fe5d23c6b t/nist/bit-hashes.sha1
-SHA1 d21096373dfbf3330d89bcb2e704b543a27b6065 t/nist/bit-messages.sha1
-SHA1 dd66fe858830fb1b23d35affa402b52a77a15b1f t/nist/byte-hashes.sha1
-SHA1 936304c2db3a3ee49ecb1247f8466814cab080a0 t/nist/byte-messages.sha1
+SHA1 fb62fba7cf3abd4a3f102e3c5d1364885f3fca0c t/nist/Readme.txt
+SHA1 1c5e5609f4a68cbaac298d0bbcbc7f56866ac296 t/nist/bit-hashes.sha1
+SHA1 f5d19f0842895dc74ec3f9b1b2bc684088552d8e t/nist/bit-messages.sha1
+SHA1 81cc5e5a0c57de956de3f44977e486afa871068f t/nist/byte-hashes.sha1
+SHA1 505c66bd2326114b05fa96474ff1973e52761137 t/nist/byte-messages.sha1
 SHA1 3b51b03c790b1cf112d4804573f5fd4814b384c2 t/state/state.1
 SHA1 cc3d0feffc019e4651fb085e7bc51e190e58fa53 t/state/state.256
 SHA1 2130ee8086bc7bf41fc329e9d87a81e2d98b68c8 t/state/state.384
 SHA1 69cd49d84cb11c83ef8e6eb36f6a472edb37079d t/state/state.512
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.0 (Darwin)
+Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFD4rkkBwNg/wr1Y/4RAgC9AJ9OrF9Kt1l6+sqbJtceucGP9OdzpQCgqj4o
-ocm8FRymP9VATTkKZLCByX0=
-=HU8y
+iD8DBQFEXpF8BwNg/wr1Y/4RAtqeAJ9eIFwJCG3M263mr4rWiglruazOPQCfdWqx
+Lj2ybTeedvjwrk3VYL578Kg=
+=zH9i
 -----END PGP SIGNATURE-----

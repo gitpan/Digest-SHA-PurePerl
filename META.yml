@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name: Digest-SHA-PurePerl
-version: 5.34
+version: 5.35
 author:
   - Mark Shelor, mshelor@cpan.org
 abstract: Perl implementation of SHA-1/224/256/384/512
@@ -12,5 +12,5 @@ conflicts: {}
 provides:
   Digest::SHA::PurePerl:
     file: PurePerl.pm
-    version: 5.34
+    version: 5.35
 generated_by: Module::Build version 0.22

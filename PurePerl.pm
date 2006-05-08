@@ -1,10 +1,12 @@
 package Digest::SHA::PurePerl;
 
+require 5.006000;
+
 use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.34';
+our $VERSION = '5.35';
 
 require Exporter;
 our @ISA = qw(Exporter);

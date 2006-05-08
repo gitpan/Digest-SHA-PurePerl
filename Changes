@@ -1,5 +1,15 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.35  Thu May  4 16:54:42 MST 2006
+	- added "portable" option to shasum
+		-- to make digests match across Windows/Unix/MacOS
+	- enabled bundling of shasum command line options
+		-- to mimic behavior of md5sum
+	- removed \r's from text files in t/nist directory
+		-- resolves SIGNATURE clashes (rt.cpan.org #18983)
+	- specified minimum Perl version for module and Makefile.PL
+		-- closes rt.cpan.org #18984
+
 5.34  Thu Feb  2 18:55:40 MST 2006
 	- removed Unix-style pathnames in test scripts
 		-- causing problems on OpenVMS
