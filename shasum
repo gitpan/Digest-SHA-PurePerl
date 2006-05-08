@@ -4,8 +4,8 @@
 	#
 	# Copyright (C) 2003-2006 Mark Shelor, All Rights Reserved
 	#
-	# Version: 5.35
-	# Thu May  4 16:54:42 MST 2006
+	# Version: 5.36
+	# Mon May  8 01:38:36 MST 2006
 
 =head1 NAME
 
@@ -52,7 +52,7 @@ L<Digest::SHA::PurePerl>.
 use strict;
 use Getopt::Long;
 
-my $VERSION = "5.35";
+my $VERSION = "5.36";
 
 
 	# Try to use Digest::SHA, since it's faster.  If not installed,
@@ -187,7 +187,7 @@ sub sumfile {
 	my $buf = <$fh>;
 	close($fh);
 
-	if ($portable) {
+	if ($portable && -T $file) {
 		$buf =~ s/\015\012/\012/g;
 		$buf =~ s/\015/\012/g;
 	}

@@ -1,5 +1,9 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.36  Mon May  8 01:38:36 MST 2006
+	- fixed the "portable" option in shasum
+		-- normalize line-breaks in text files only
+
 5.35  Thu May  4 16:54:42 MST 2006
 	- added "portable" option to shasum
 		-- to make digests match across Windows/Unix/MacOS
