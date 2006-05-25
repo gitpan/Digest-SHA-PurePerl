@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.37';
+our $VERSION = '5.38';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -14,15 +14,16 @@ our @EXPORT_OK = ();		# see "SHA and HMAC-SHA functions" below
 
 # If possible, inherit from Digest::base (which depends on MIME::Base64)
 
+*addfile = \&_Addfile;
+
 eval {
 	require MIME::Base64;
 	require Digest::base;
 	push(@ISA, 'Digest::base');
 };
 if ($@) {
-	*addfile = \&_addfile;
-	*hexdigest = \&_hexdigest;
-	*b64digest = \&_b64digest;
+	*hexdigest = \&_Hexdigest;
+	*b64digest = \&_B64digest;
 }
 
 # ref. src/sha.c and sha/sha64bit.c from Digest::SHA
@@ -772,7 +773,7 @@ sub digest {
 	$rsp;
 }
 
-sub _hexdigest {
+sub _Hexdigest {
 	my $self = shift;
 	_shafinish($self);
 	my $rsp = _shahex($self);
@@ -780,7 +781,7 @@ sub _hexdigest {
 	$rsp;
 }
 
-sub _b64digest {
+sub _B64digest {
 	my $self = shift;
 	_shafinish($self);
 	my $rsp = _shabase64($self);
@@ -824,23 +825,64 @@ sub add_bits {
 	return($self);
 }
 
-# local copy of "addfile" in case Digest::base not installed
+sub _bail {
+	my $msg = shift;
 
-sub _addfile {	# this is "addfile" from Digest::base 1.00
+        require Carp;
+        Carp::croak("$msg: $!");
+}
+
+sub _addfile {
     my ($self, $handle) = @_;
 
     my $n;
     my $buf = "";
 
     while (($n = read($handle, $buf, 4096))) {
-	$self->add($buf);
+        $self->add($buf);
     }
-    unless (defined $n) {
-	require Carp;
-	Carp::croak("Read failed: $!");
-    }
+    _bail("Read failed") unless defined $n;
 
     $self;
+}
+
+sub _Addfile {
+	my ($self, $file, $mode) = @_;
+
+	if (ref(\$file) eq 'GLOB') { return(_addfile($self, $file)) }
+
+	$mode = defined($mode) ? $mode : "";
+	my ($binary, $portable) = map { $_ eq $mode } ("b", "p");
+	my $text = -T $file;
+
+	local *F;
+	_bail("Open failed") unless open(F, "<$file");
+	binmode(F) if $binary || $portable;
+
+	unless ($portable && $text) {
+		$self->_addfile(*F);
+		close(F);
+		return($self);
+	}
+
+	my ($n1, $n2);
+	my ($buf1, $buf2) = ("", "");
+
+	while (($n1 = read(F, $buf1, 4096))) {
+		while (substr($buf1, -1) eq "\015") {
+			$n2 = read(F, $buf2, 4096);
+			_bail("Read failed") unless defined $n2;
+			last unless $n2;
+			$buf1 .= $buf2;
+		}
+                $buf1 =~ s/\015?\015\012/\012/g; 	# DOS/Windows
+                $buf1 =~ s/\015/\012/g;          	# Apple/MacOS 9
+		$self->add($buf1);
+	}
+	_bail("Read failed") unless defined $n1;
+	close(F);
+
+	$self;
 }
 
 sub dump {
@@ -893,7 +935,10 @@ In programs:
 	$sha = Digest::SHA::PurePerl->new($alg);
 
 	$sha->add($data);		# feed data into stream
+
 	$sha->addfile(*F);
+        $sha->addfile($filename);
+
 	$sha->add_bits($bits);
 	$sha->add_bits($data, $nbits);
 
@@ -1146,8 +1191,32 @@ So, the following two statements do the same thing:
 Reads from I<FILE> until EOF, and appends that data to the current
 state.  The return value is the updated object itself.
 
-This method is inherited if L<Digest::base> is installed on your
-system.  Otherwise, a functionally equivalent substitute is used.
+=item B<addfile($filename [, $mode])>
+
+Reads the contents of I<$filename>, and appends that data to the current
+state.  The return value is the updated object itself.
+
+By default, I<$filename> is simply opened and read; no special modes
+or I/O disciplines are used.  To change this, set the optional I<$mode>
+argument to one of the following values:
+
+=over 4
+
+=item B<"b">	read file in binary mode
+
+=item B<"p">	use portable mode
+
+=back
+
+The "p" mode is handy since it ensures that the digest value of
+I<$filename> will be the same when computed on different operating
+systems.  It accomplishes this by internally translating all newlines
+in text files to UNIX format before calculating the digest; on the other
+hand, binary files are read in raw mode with no translation whatsoever.
+
+For a fuller discussion of newline formats, refer to CPAN module
+L<File::LocalizeNewlines>.  Its "universal line separator" regex forms
+the basis of I<addfile>'s portable mode processing.
 
 =item B<dump($filename)>
 
@@ -1276,6 +1345,7 @@ The author is particularly grateful to
 	Jeffrey Friedl
 	Robert Gilmour
 	Brian Gladman
+        Adam Kennedy
 	Andy Lester
 	Alex Muntada
 	Steve Peters

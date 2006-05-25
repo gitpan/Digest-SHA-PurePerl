@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.53.
+signed via the Module::Signature module, version 0.54.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,13 +14,13 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 100d6f868ba248cc8835d2b22c83fd85c333d63c Changes
+SHA1 12dd75d525cea1b24ad92fd9fd19f7bed64fe215 Changes
 SHA1 d958eefd10cd8f59e35d035b4d4192783e512eb5 MANIFEST
-SHA1 11953ecab1c3de8f19302d9ac8bbbeb1bbbb157d META.yml
+SHA1 ecdba904c4de1691c70be48488f28b7a6a204908 META.yml
 SHA1 e7c5a41faf9b01b8794abc100b54d8100b3116e9 Makefile.PL
-SHA1 eb8f739d2389098152ee4c0c48feaf8ce2ff1a5c PurePerl.pm
-SHA1 62957f63fde8ca1b83f91f614dc5da17520e689e README
-SHA1 8ac9940d0fed994e598c54329407ea8e7f52d512 shasum
+SHA1 14235b9a191e3d81ab8f4e98c05a087026eb7ca5 PurePerl.pm
+SHA1 66371ca0240623c0733051def1c13c0748f874ed README
+SHA1 a04c3ec62ceb3b650abffbc4fcce8c39a0bcc4f6 shasum
 SHA1 59df577769c4a1cd184d6034b8576dfb1e32f752 t/0-pod-coverage.t
 SHA1 38ccb5f60fe9f45d127602067f072458fc1797d5 t/0-pod.t
 SHA1 627754202b2dd4909558afa92b585662cd1e7e12 t/1-exist.t
@@ -31,7 +31,7 @@ SHA1 2eadaa9fcdd363985367b34f1687134b25e9ae2e t/2-nist-sha-256.t
 SHA1 36127bdbd2bd4d67e38dc9ca89642200d0c6a3ed t/2-nist-sha-384.t
 SHA1 a6cb0f4819bb9122000a6ef523ee96858594e0ae t/2-nist-sha-512.t
 SHA1 5b917a33ddf4c9ecb66bc4d0a2573606d7e4a5f9 t/2-nist-sha-base64.t
-SHA1 7111cbc6eb5775567e32908cd74bd557bb3b455b t/2-nist-sha-oo.t
+SHA1 430dc09716b2371b98e10e028ec1be798f2995c5 t/2-nist-sha-oo.t
 SHA1 a2dec1763b661135fcfb0724e93bc19a2ed2c87b t/2-nist-vectors-bit.t
 SHA1 14e45400d80f441fc768f18212548fc0a0a36d08 t/2-nist-vectors-byte.t
 SHA1 a93505783327684577f5a3337b744618b066515d t/3-gillogly-easy.t
@@ -60,7 +60,7 @@ SHA1 69cd49d84cb11c83ef8e6eb36f6a472edb37079d t/state/state.512
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.1 (GNU/Linux)
 
-iD8DBQFEaF+dBwNg/wr1Y/4RAtp5AKDvgW10Jo4yN4NR9y13e5gmHM+LrQCcCIyR
-/IwkWiSDBefEOm2KRps6bIw=
-=hw/f
+iD8DBQFEdX7DBwNg/wr1Y/4RAtsCAJ9J7uvNJPlIWoPJwjfKhrAcoPL/gwCfde/+
+zuZ4lLGyet0/drVZgDHu97k=
+=DQMU
 -----END PGP SIGNATURE-----
