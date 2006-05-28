@@ -4,8 +4,8 @@
 	#
 	# Copyright (C) 2003-2006 Mark Shelor, All Rights Reserved
 	#
-	# Version: 5.38
-	# Thu May 25 02:02:02 MST 2006
+	# Version: 5.39
+	# Sun May 28 03:22:24 MST 2006
 
 =head1 NAME
 
@@ -52,7 +52,7 @@ L<Digest::SHA::PurePerl>.
 use strict;
 use Getopt::Long;
 
-my $VERSION = "5.38";
+my $VERSION = "5.39";
 
 
 	# Try to use Digest::SHA, since it's faster.  If not installed,
@@ -132,7 +132,7 @@ GetOptions(
 
 usage(0)
 	if $help;
-usage(1, "Ambiguous file mode\n")
+usage(1, "shasum: Ambiguous file mode\n")
 	if scalar(grep { defined $_ } ($binary, $portable, $text)) > 1;
 usage(1, "shasum: --warn option used only when verifying checksums\n")
 	if $warn && !$check;
@@ -144,7 +144,7 @@ usage(1, "shasum: --status option used only when verifying checksums\n")
 
 $alg = 1 unless $alg;
 grep { $_ == $alg } (1, 224, 256, 384, 512)
-	or usage(1, "Unrecognized algorithm\n");
+	or usage(1, "shasum: Unrecognized algorithm\n");
 
 
 	# Display version information if requested
@@ -176,24 +176,14 @@ my $modesym = $binary ? '*' : ($portable ? '?' : ' ');
 sub sumfile {
 	my $file = shift;
 
-	unless (-e $file) {
-		warn "shasum: $file: No such file or directory\n";
-		return;
-	}
-	unless (-r $file) {
-		warn "shasum: $file: FAILED open or read\n";
-		return;
-	}
-
-	my $digest = $module->new($alg);
-	unless ($digest) {
-		warn "shasum: $file: FAILED digest creation\n";
+	my $mode = $portable ? 'p' : ($binary ? 'b' : '');
+	my $digest = eval { $module->new($alg)->addfile($file, $mode) };
+	if ($@) {
+		warn "shasum: $file: $!\n";
 		return;
 	}
 
-	my $readmode = $portable ? 'p' : ($binary ? 'b' : '');
-
-	$digest->addfile($file, $readmode)->hexdigest;
+	$digest->hexdigest;
 }
 
 
@@ -210,7 +200,7 @@ if ($check) {
 	my ($num_files, $num_checksums) = (0, 0);
 	my ($fh, $sum, $fname, $rsp);
 
-	die "shasum: $checkfile: No such file or directory\n"
+	die "shasum: $checkfile: $!\n"
 		unless open($fh, "<$checkfile");
 	while (<$fh>) {
 		s/\s+$//;
@@ -248,10 +238,7 @@ if ($check) {
 	# Compute and display SHA checksums of requested files
 
 for my $arg (@ARGV) {
-	if (-d $arg) {
-		warn "shasum: $arg: Is a directory\n";
-		next;
+	if (my $digest = sumfile($arg)) {
+		print "$digest $modesym", "$arg\n";
 	}
-	my $digest = sumfile($arg) or next;
-	print "$digest $modesym$arg\n";
 }
