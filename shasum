@@ -1,11 +1,11 @@
 #!perl -w
 
-	# shasum: filter for computing SHA digests (analogous to md5sum)
+	# shasum: filter for computing SHA digests (analogous to sha1sum)
 	#
 	# Copyright (C) 2003-2006 Mark Shelor, All Rights Reserved
 	#
-	# Version: 5.39
-	# Sun May 28 03:22:24 MST 2006
+	# Version: 5.40
+	# Fri Jun  2 04:00:30 MST 2006
 
 =head1 NAME
 
@@ -52,7 +52,7 @@ L<Digest::SHA::PurePerl>.
 use strict;
 use Getopt::Long;
 
-my $VERSION = "5.39";
+my $VERSION = "5.40";
 
 
 	# Try to use Digest::SHA, since it's faster.  If not installed,
@@ -237,8 +237,8 @@ if ($check) {
 
 	# Compute and display SHA checksums of requested files
 
-for my $arg (@ARGV) {
-	if (my $digest = sumfile($arg)) {
-		print "$digest $modesym", "$arg\n";
+for my $file (@ARGV) {
+	if (my $digest = sumfile($file)) {
+		print "$digest $modesym", "$file\n";
 	}
 }

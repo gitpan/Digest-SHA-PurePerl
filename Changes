@@ -1,5 +1,9 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.40  Fri Jun  2 04:00:30 MST 2006
+	- modified addfile to accept indirect filehandles
+		-- ref. rt.cpan.org #19627 and #19641
+
 5.39  Sun May 28 03:22:24 MST 2006
 	- modified shasum to warn rather than die for file errors
 		-- to follow conventions of GNU sha1sum/md5sum

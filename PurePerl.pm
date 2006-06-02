@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.39';
+our $VERSION = '5.40';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -849,7 +849,8 @@ sub _addfile {
 sub _Addfile {
 	my ($self, $file, $mode) = @_;
 
-	if (ref(\$file) eq 'GLOB') { return(_addfile($self, $file)) }
+	return(_addfile($self, $file)) if
+		ref($file) eq 'GLOB' || ref(\$file) eq 'GLOB';
 
 	$mode = defined($mode) ? $mode : "";
 	my ($binary, $portable) = map { $_ eq $mode } ("b", "p");
