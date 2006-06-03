@@ -1,5 +1,10 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.41  Sat Jun  3 01:50:46 MST 2006
+	- corrected addfile
+		-- process $file argument as a filehandle unless passed
+			as a SCALAR (which indicates a file name)
+
 5.40  Fri Jun  2 04:00:30 MST 2006
 	- modified addfile to accept indirect filehandles
 		-- ref. rt.cpan.org #19627 and #19641

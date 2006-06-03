@@ -4,8 +4,8 @@
 	#
 	# Copyright (C) 2003-2006 Mark Shelor, All Rights Reserved
 	#
-	# Version: 5.40
-	# Fri Jun  2 04:00:30 MST 2006
+	# Version: 5.41
+	# Sat Jun  3 01:50:46 MST 2006
 
 =head1 NAME
 
@@ -52,7 +52,7 @@ L<Digest::SHA::PurePerl>.
 use strict;
 use Getopt::Long;
 
-my $VERSION = "5.40";
+my $VERSION = "5.41";
 
 
 	# Try to use Digest::SHA, since it's faster.  If not installed,
