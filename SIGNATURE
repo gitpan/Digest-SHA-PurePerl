@@ -14,16 +14,16 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 b80b0c1cbaccf31158efeeee5b6304554628f058 Changes
+SHA1 f90774ddb4d244544aeb0c1aa374aa9502687041 Changes
 SHA1 d958eefd10cd8f59e35d035b4d4192783e512eb5 MANIFEST
-SHA1 27910de7a0b79aba95fc422ae11790fc827b7937 META.yml
+SHA1 9644ad9470fcecd386caa5913bb08ce6efc775a7 META.yml
 SHA1 e7c5a41faf9b01b8794abc100b54d8100b3116e9 Makefile.PL
-SHA1 d423fdb8aa7b107bfde129050aa0e5395e5c7e04 PurePerl.pm
-SHA1 f5f8add1cb7c558ee378b86cc0d87af03ef9e3ff README
-SHA1 81edf31a7454f1c6684f3eea3765ccbbc1714fb3 shasum
+SHA1 e2a452eeb076d6c8285e537a41aa80509cea13c4 PurePerl.pm
+SHA1 7e29923ef13527ec487e90080c46a3a223a80416 README
+SHA1 13198e4cd149d2fac3c4b8ff6936cad0d72d47fc shasum
 SHA1 59df577769c4a1cd184d6034b8576dfb1e32f752 t/0-pod-coverage.t
 SHA1 38ccb5f60fe9f45d127602067f072458fc1797d5 t/0-pod.t
-SHA1 627754202b2dd4909558afa92b585662cd1e7e12 t/1-exist.t
+SHA1 70ff35852fcab40372f7a7ceffc5aeef0038060e t/1-exist.t
 SHA1 a65219f2575a564b56defd0d25786e9a1160955a t/1-hello-world.t
 SHA1 f230bbb414f40453e3fd64a31725ba96cb054681 t/2-nist-sha-1.t
 SHA1 713e7cc01cda8d20f6126f5804fadd6e4346f72c t/2-nist-sha-224.t
@@ -31,11 +31,11 @@ SHA1 2eadaa9fcdd363985367b34f1687134b25e9ae2e t/2-nist-sha-256.t
 SHA1 36127bdbd2bd4d67e38dc9ca89642200d0c6a3ed t/2-nist-sha-384.t
 SHA1 a6cb0f4819bb9122000a6ef523ee96858594e0ae t/2-nist-sha-512.t
 SHA1 5b917a33ddf4c9ecb66bc4d0a2573606d7e4a5f9 t/2-nist-sha-base64.t
-SHA1 04e0ef36e3ef79097b5bb2809cd3332f8e3a5542 t/2-nist-sha-oo.t
-SHA1 a2dec1763b661135fcfb0724e93bc19a2ed2c87b t/2-nist-vectors-bit.t
-SHA1 14e45400d80f441fc768f18212548fc0a0a36d08 t/2-nist-vectors-byte.t
+SHA1 a0d608cf28b59eb43ad262ecc72e40c302aca5f4 t/2-nist-sha-oo.t
+SHA1 dc55569cc4c4c66e56755582d67877b81e59c9df t/2-nist-vectors-bit.t
+SHA1 b8860af389a2dd3021265e3385f5bd674297e89f t/2-nist-vectors-byte.t
 SHA1 a93505783327684577f5a3337b744618b066515d t/3-gillogly-easy.t
-SHA1 12f12f0a6c62dc66fb439753a25c1dc7f2387267 t/3-gillogly-hard.t
+SHA1 5f5f2dfec65bde1fa391d9384fc0957e3e4559de t/3-gillogly-hard.t
 SHA1 0d89da9673094f5e12837927b1f6369cf50b2165 t/4-bitstr-increasing.t
 SHA1 19f77cfb08de729721608eb14dce29857b87f644 t/4-bitstr-large.t
 SHA1 39dbda1efc336c7fb1127038341b4209d417e9d5 t/4-bitstr-random.t
@@ -43,8 +43,8 @@ SHA1 b4a72a90b230c5ae319e08e3a3101e95e8bd28e0 t/5-hmac-fips198.t
 SHA1 d623620dc7d996bddd81179ef4adecbe4122639a t/5-hmac-rfc2202.t
 SHA1 9a95d302e0966eed01b2d595208f3e7c2fe5cb02 t/5-hmac-sha-256.t
 SHA1 0fd113da5481267f2d788908c974ff58a9494a01 t/5-hmac-woodbury.t
-SHA1 fc6b7b657fbef0b54b18cae6e198d28f449a36f2 t/6-dump-load.t
-SHA1 96fb4b3866d188e523368c0731eb2e4ff7606a15 t/7-ireland.t
+SHA1 f8a2ecc0b7f2a1229d8ba65d115ad920ddb3317d t/6-dump-load.t
+SHA1 7ab10629bdcef81dcb5f28aeff04d2967f0b794d t/7-ireland.t
 SHA1 636d5e987243f6634fdc1dff1fe1d11d07778347 t/gillogly/state.011
 SHA1 b1e86af6b46e066555bbcd749982ccba816cf744 t/gillogly/state.110
 SHA1 427874bceb58bc3a36b5808a204023334614930b t/nist/COPYRIGHT
@@ -58,9 +58,9 @@ SHA1 cc3d0feffc019e4651fb085e7bc51e190e58fa53 t/state/state.256
 SHA1 2130ee8086bc7bf41fc329e9d87a81e2d98b68c8 t/state/state.384
 SHA1 69cd49d84cb11c83ef8e6eb36f6a472edb37079d t/state/state.512
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.1 (GNU/Linux)
+Version: GnuPG v1.4.2.2 (GNU/Linux)
 
-iD8DBQFEgU6FBwNg/wr1Y/4RAubWAKCZgxiahTJhsViIZQdGlidBOavEsACgmeK2
-/cKm2EokI0PZQrD86/g6mw8=
-=iWmx
+iD8DBQFExKm6D1RhyLU4xRwRArR2AKDIwMDk3VW846rttOv/HXif14xd9QCfYHio
+x+8NJgWf6x5KGBP9gtaJswk=
+=FdE5
 -----END PGP SIGNATURE-----

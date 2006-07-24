@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.41';
+our $VERSION = '5.42';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -232,7 +232,7 @@ my $sha1_code =
 }
 ';
 
-eval($sha1_code);
+eval($sha1_code);		## no critic
 
 sub _c_M2 {			# ref. Digest::SHA sha.c (sha256 routine)
 	my($a, $b, $c, $d, $e, $f, $g, $h, $w) = @_;
@@ -300,7 +300,7 @@ my $sha256_code =
 }
 ';
 
-eval($sha256_code);
+eval($sha256_code);		## no critic
 
 sub _sha512_placeholder { return }
 my $sha512 = \&_sha512_placeholder;
@@ -413,12 +413,12 @@ sub _sha512 {
 }
 /;
 
-eval($sha512_code);
+eval($sha512_code);			## no critic
 $sha512 = \&_sha512;
 
 ';
 
-eval($_64bit_code) if $uses64bit;
+eval($_64bit_code) if $uses64bit;	## no critic
 
 sub _SETBIT {
 	my($self, $pos) = @_;
@@ -614,31 +614,33 @@ sub _shacpy {
 sub _shadup { my($self) = @_; my($copy); _shacpy($copy, $self) }
 
 sub _shadump {
-	my $file = shift || "-"; open(F, ">$file") or return;
+	my $file = shift;
+	$file = "-" if (!defined($file) || $file eq "");
 
+	open(my $fh, q{>}, $file) or return;
 	my $self = shift;
 	my $is32bit = $self->{alg} <= 256;
 	my $fmt = $is32bit ? ":%08x" : ":%016x";
 
-	printf F "alg:%d\n", $self->{alg};
+	printf $fh "alg:%d\n", $self->{alg};
 
-	printf F "H";
-	for (@{$self->{H}}) { printf F $fmt, $is32bit ? $_ & $MAX32 : $_ }
+	printf $fh "H";
+	for (@{$self->{H}}) { printf $fh $fmt, $is32bit ? $_ & $MAX32 : $_ }
 
-	printf F "\nblock";
+	printf $fh "\nblock";
 	my @c = unpack("C*", $self->{block});
 	push(@c, 0x00) while scalar(@c) < ($self->{blocksize} >> 3);
-	for (@c) { printf F ":%02x", $_ }
+	for (@c) { printf $fh ":%02x", $_ }
 
-	printf F "\nblockcnt:%u\n", $self->{blockcnt};
+	printf $fh "\nblockcnt:%u\n", $self->{blockcnt};
 
 	no integer;
-		printf F "lenhh:%lu\nlenhl:%lu\n", 0, 0;
-		printf F "lenlh:%lu\n", $self->{len} / $TWO32;
-		printf F "lenll:%lu\n", $self->{len} % $TWO32;
+		printf $fh "lenhh:%lu\nlenhl:%lu\n", 0, 0;
+		printf $fh "lenlh:%lu\n", $self->{len} / $TWO32;
+		printf $fh "lenll:%lu\n", $self->{len} % $TWO32;
 	use integer;
 
-	close(F);
+	close($fh);
 	$self;
 }
 
@@ -657,12 +659,15 @@ sub _match {
 }
 
 sub _shaload {
-	my $file = shift || "-"; open(F, "<$file") or return;
+	my $file = shift;
+	$file = "-" if (!defined($file) || $file eq "");
 
-	my @f = _match(*F, "alg") or return;
+	open(my $fh, q{<}, $file) or return;
+
+	my @f = _match($fh, "alg") or return;
 	my $self = _shaopen(shift(@f)) or return;
 
-	@f = _match(*F, "H") or return;
+	@f = _match($fh, "H") or return;
 	my $numxdigits = $self->{alg} <= 256 ? 8 : 16;
 	for (@f) { $_ = "0" . $_ while length($_) < $numxdigits }
 	for (@f) { $_ = substr($_, 1) while length($_) > $numxdigits }
@@ -670,21 +675,21 @@ sub _shaload {
 		((hex(substr($_, 0, 8)) << 16) << 16) |
 		hex(substr($_, 8)) } @f;
 
-	@f = _match(*F, "block") or return;
+	@f = _match($fh, "block") or return;
 	for (@f) { $self->{block} .= chr(hex($_)) }
 
-	@f = _match(*F, "blockcnt") or return;
+	@f = _match($fh, "blockcnt") or return;
 	$self->{blockcnt} = shift(@f);
 	$self->{block} = substr($self->{block},0,_BYTECNT($self->{blockcnt}));
 
-	@f = _match(*F, "lenhh") or return;
-	@f = _match(*F, "lenhl") or return;
-	@f = _match(*F, "lenlh") or return;
+	@f = _match($fh, "lenhh") or return;
+	@f = _match($fh, "lenhl") or return;
+	@f = _match($fh, "lenlh") or return;
 	no integer; $self->{len} = shift(@f) * $TWO32; use integer;
-	@f = _match(*F, "lenll") or return;
+	@f = _match($fh, "lenll") or return;
 	no integer; $self->{len} += shift(@f); use integer;
 
-	close(F);
+	close($fh);
 	$self;
 }
 
@@ -741,7 +746,7 @@ for my $alg (1, 224, 256, 384, 512) {
 			_shafinish($state);
 			_sha' . $suffix_intern[$i] . '($state);
 		}';
-		eval($fcn);
+		eval($fcn);		## no critic
 		push(@EXPORT_OK, 'sha' . $alg . $suffix_extern[$i]);
 		$fcn = 'sub hmac_sha' . $alg . $suffix_extern[$i] . ' {
 			my $state = _hmacopen(' . $alg . ', pop(@_)) or return;
@@ -749,7 +754,7 @@ for my $alg (1, 224, 256, 384, 512) {
 			_hmacfinish($state);
 			_hmac' . $suffix_intern[$i] . '($state);
 		}';
-		eval($fcn);
+		eval($fcn);		## no critic
 		push(@EXPORT_OK, 'hmac_sha' . $alg . $suffix_extern[$i]);
 	}
 }
@@ -855,22 +860,21 @@ sub _Addfile {
 	my ($binary, $portable) = map { $_ eq $mode } ("b", "p");
 	my $text = -T $file;
 
-	local *F;
-	_bail("Open failed") unless open(F, "<$file");
-	binmode(F) if $binary || $portable;
+	open(my $fh, q{<}, $file) or _bail("Open failed");
+	binmode($fh) if $binary || $portable;
 
 	unless ($portable && $text) {
-		$self->_addfile(*F);
-		close(F);
+		$self->_addfile($fh);
+		close($fh);
 		return($self);
 	}
 
 	my ($n1, $n2);
 	my ($buf1, $buf2) = ("", "");
 
-	while (($n1 = read(F, $buf1, 4096))) {
+	while (($n1 = read($fh, $buf1, 4096))) {
 		while (substr($buf1, -1) eq "\015") {
-			$n2 = read(F, $buf2, 4096);
+			$n2 = read($fh, $buf2, 4096);
 			_bail("Read failed") unless defined $n2;
 			last unless $n2;
 			$buf1 .= $buf2;
@@ -880,7 +884,7 @@ sub _Addfile {
 		$self->add($buf1);
 	}
 	_bail("Read failed") unless defined $n1;
-	close(F);
+	close($fh);
 
 	$self;
 }
@@ -1058,6 +1062,30 @@ the larger and stronger hash functions.>
 
 ref. L<http://www.csrc.nist.gov/pki/HashWorkshop/NIST%20Statement/Burr_Mar2005.html>
 
+=head1 BASE64 DIGESTS
+
+By convention, CPAN Digest modules do not pad their Base64 output.
+This means that Base64 digests contain no trailing "=" characters.
+Unfortunately, problems can occur when feeding such digests to other
+software that expects properly padded Base64 encodings.
+
+For the time being, any necessary padding must be done by the user.
+Fortunately, the rule for accomplishing it is straightforward: if the
+length of a Base64-encoded digest isn't a multiple of 4, simply append
+1 or more "=" characters to the end of the digest until it is:
+
+	while (length($b64_digest) % 4) {
+		$b64_digest .= '=';
+	}
+
+To illustrate, I<sha256_base64("abc")> is computed to be
+
+	ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0
+
+which has a length of 43.  So, the properly padded version is
+
+	ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=
+
 =head1 EXPORT
 
 None by default.
@@ -1111,6 +1139,11 @@ its SHA-1/224/256/384/512 digest encoded as a hexadecimal string.
 
 Logically joins the arguments into a single string, and returns
 its SHA-1/224/256/384/512 digest encoded as a Base64 string.
+
+It's important to note that the resulting string does B<not> contain
+the padding characters typical of Base64 encodings.  This omission is
+deliberate, and is done to maintain compatibility with the family of
+CPAN Digest modules.  See L</"BASE64 DIGESTS"> for details.
 
 =back
 
@@ -1262,6 +1295,11 @@ the original digest state.
 This method is inherited if L<Digest::base> is installed on your
 system.  Otherwise, a functionally equivalent substitute is used.
 
+It's important to note that the resulting string does B<not> contain
+the padding characters typical of Base64 encodings.  This omission is
+deliberate, and is done to maintain compatibility with the family of
+CPAN Digest modules.  See L</"BASE64 DIGESTS"> for details.
+
 =back
 
 I<HMAC-SHA-1/224/256/384/512>
@@ -1312,6 +1350,11 @@ Returns the HMAC-SHA-1/224/256/384/512 digest of I<$data>/I<$key>,
 with the result encoded as a Base64 string.  Multiple I<$data>
 arguments are allowed, provided that I<$key> is the last argument
 in the list.
+
+It's important to note that the resulting string does B<not> contain
+the padding characters typical of Base64 encodings.  This omission is
+deliberate, and is done to maintain compatibility with the family of
+CPAN Digest modules.  See L</"BASE64 DIGESTS"> for details.
 
 =back
 
