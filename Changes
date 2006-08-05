@@ -1,5 +1,10 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.43  Sat Aug  5 02:36:18 MST 2006
+	- undid Perl Best Practice of favoring 3-argument "open"
+		-- 3-arg version uses different semantics for "-"
+			causing bugs in addfile/shadump/shaload/shasum
+
 5.42  Mon Jul 24 04:04:40 MST 2006
 	- minor code changes suggested by Perl::Critic
 		-- e.g. no bareword filehandles, no 2-argument open's

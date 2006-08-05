@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use integer;
 
-our $VERSION = '5.42';
+our $VERSION = '5.43';
 
 require Exporter;
 our @ISA = qw(Exporter);
@@ -617,7 +617,7 @@ sub _shadump {
 	my $file = shift;
 	$file = "-" if (!defined($file) || $file eq "");
 
-	open(my $fh, q{>}, $file) or return;
+	open(my $fh, ">$file") or return;	## no critic
 	my $self = shift;
 	my $is32bit = $self->{alg} <= 256;
 	my $fmt = $is32bit ? ":%08x" : ":%016x";
@@ -662,7 +662,7 @@ sub _shaload {
 	my $file = shift;
 	$file = "-" if (!defined($file) || $file eq "");
 
-	open(my $fh, q{<}, $file) or return;
+	open(my $fh, "<$file") or return;	## no critic
 
 	my @f = _match($fh, "alg") or return;
 	my $self = _shaopen(shift(@f)) or return;
@@ -860,7 +860,8 @@ sub _Addfile {
 	my ($binary, $portable) = map { $_ eq $mode } ("b", "p");
 	my $text = -T $file;
 
-	open(my $fh, q{<}, $file) or _bail("Open failed");
+	open(my $fh, "<$file") 			## no critic
+		or _bail("Open failed");
 	binmode($fh) if $binary || $portable;
 
 	unless ($portable && $text) {
