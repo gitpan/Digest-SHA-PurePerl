@@ -1,5 +1,9 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.44  Sat Oct 14 00:42:44 MST 2006
+	- removed SIGNATURE file from distribution
+		-- spurious errors from CPANPLUS can break build
+
 5.43  Sat Aug  5 02:36:18 MST 2006
 	- undid Perl Best Practice of favoring 3-argument "open"
 		-- 3-arg version uses different semantics for "-"

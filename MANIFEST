@@ -5,7 +5,7 @@ META.yml
 PurePerl.pm
 README
 shasum
-SIGNATURE
+examples/dups
 t/0-pod-coverage.t
 t/0-pod.t
 t/1-exist.t
