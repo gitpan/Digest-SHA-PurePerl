@@ -42,7 +42,6 @@ Perl module L<Digest::SHA> or L<Digest::SHA::PurePerl>
 =cut
 
 use strict;
-use warnings;
 use Digest::SHA::PurePerl;
 
 die "usage: dups files ...\n" unless @ARGV;

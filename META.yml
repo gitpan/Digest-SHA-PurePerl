@@ -1,16 +1,11 @@
 --- #YAML:1.0
 name: Digest-SHA-PurePerl
-version: 5.44
-author:
-  - Mark Shelor, mshelor@cpan.org
+version: 5.45
 abstract: Perl implementation of SHA-1/224/256/384/512
 license: perl
-requires: {}
-recommends: {}
-build_requires: {}
-conflicts: {}
-provides:
-  Digest::SHA::PurePerl:
-    file: PurePerl.pm
-    version: 5.44
-generated_by: Module::Build version 0.22
+author:
+  - Mark Shelor, mshelor@cpan.org
+meta-spec:
+  version: 1.3
+  url: http://module-build.sourceforge.net/META-spec-v1.3.html
+generated_by: Mark Shelor

@@ -1,12 +1,14 @@
-require 5.006000;
+require 5.003000;
 
 use ExtUtils::MakeMaker;
 
-WriteMakefile(
+%att = (
 	'NAME'		=> 'Digest::SHA::PurePerl',
 	'VERSION_FROM'	=> 'PurePerl.pm',
-	'PREREQ_PM'	=> {},
-	'AUTHOR'	=> 'Mark Shelor <mshelor@cpan.org>',
-	'NO_META'	=> 1,
-	'EXE_FILES'	=> [ 'shasum' ]
+	'EXE_FILES'	=> [ 'shasum' ],
 );
+
+$att{NO_META} = 1
+	unless $ExtUtils::MakeMaker::VERSION < 6.10_03;
+
+WriteMakefile(%att);

@@ -1,16 +1,17 @@
 package Digest::SHA::PurePerl;
 
-require 5.006000;
+require 5.003000;
 
 use strict;
-use warnings;
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use integer;
+use FileHandle;
 
-our $VERSION = '5.44';
+$VERSION = '5.45';
 
 require Exporter;
-our @ISA = qw(Exporter);
-our @EXPORT_OK = ();		# see "SHA and HMAC-SHA functions" below
+@ISA = qw(Exporter);
+@EXPORT_OK = ();		# see "SHA and HMAC-SHA functions" below
 
 # If possible, inherit from Digest::base (which depends on MIME::Base64)
 
@@ -33,28 +34,6 @@ my $TWO32 = 4294967296;
 
 my $uses64bit = (((1 << 16) << 16) << 16) << 15;
 
-my($K1, $K2, $K3, $K4) = (	# SHA-1 constants
-	0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6
-);
-
-my @K256 = (			# SHA-224/256 constants
-	0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
-	0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-	0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
-	0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-	0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
-	0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-	0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
-	0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-	0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
-	0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-	0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
-	0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-	0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
-	0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-	0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-	0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-);
 
 my @H01 = (			# SHA-1 initial hash value
 	0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476,
@@ -178,8 +157,13 @@ sub _c_A1 {
 
 # The following code emulates the "sha1" routine from Digest::SHA sha.c
 
-my $sha1_code =
-'sub _sha1 {
+my $sha1_code = '
+
+my($K1, $K2, $K3, $K4) = (	# SHA-1 constants
+	0x5a827999, 0x6ed9eba1, 0x8f1bbcdc, 0xca62c1d6
+);
+
+sub _sha1 {
 	my($self, $block) = @_;
 	my(@W, $a, $b, $c, $d, $e, $tmp);
 
@@ -232,7 +216,7 @@ my $sha1_code =
 }
 ';
 
-eval($sha1_code);		## no critic
+eval($sha1_code);
 
 sub _c_M2 {			# ref. Digest::SHA sha.c (sha256 routine)
 	my($a, $b, $c, $d, $e, $f, $g, $h, $w) = @_;
@@ -263,8 +247,28 @@ sub _c_A2 {
 
 # The following code emulates the "sha256" routine from Digest::SHA sha.c
 
-my $sha256_code =
-'sub _sha256 {
+my $sha256_code = '
+
+my @K256 = (			# SHA-224/256 constants
+	0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+	0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+	0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+	0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+	0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+	0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+	0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+	0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+	0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+	0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+	0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+	0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+	0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+	0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+	0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+	0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+);
+
+sub _sha256 {
 	my($self, $block) = @_;
 	my(@W, $a, $b, $c, $d, $e, $f, $g, $h, $i, $T1);
 
@@ -300,14 +304,14 @@ my $sha256_code =
 }
 ';
 
-eval($sha256_code);		## no critic
+eval($sha256_code);
 
 sub _sha512_placeholder { return }
 my $sha512 = \&_sha512_placeholder;
 
 my $_64bit_code = '
 
-no warnings;	# suppress warnings triggered by 64-bit constants
+BEGIN { $^W = 0 }	# suppress warnings triggered by 64-bit constants
 
 my @K512 = (
 	0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f,
@@ -347,8 +351,6 @@ my @K512 = (
 	0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b,
 	0xa54ff53a5f1d36f1, 0x510e527fade682d1, 0x9b05688c2b3e6c1f,
 	0x1f83d9abfb41bd6b, 0x5be0cd19137e2179);
-
-use warnings;
 
 sub _c_SL64 { my($x, $n) = @_; "($x << $n)" }
 
@@ -413,12 +415,12 @@ sub _sha512 {
 }
 /;
 
-eval($sha512_code);			## no critic
+eval($sha512_code);
 $sha512 = \&_sha512;
 
 ';
 
-eval($_64bit_code) if $uses64bit;	## no critic
+eval($_64bit_code) if $uses64bit;
 
 sub _SETBIT {
 	my($self, $pos) = @_;
@@ -456,7 +458,7 @@ sub _sharewind {
 	my $alg = $self->{alg};
 	$self->{block} = ""; $self->{blockcnt} = 0;
 	$self->{blocksize} = $alg <= 256 ? 512 : 1024;
-	no integer; $self->{len} = 0; use integer;
+	for (qw(lenll lenlh lenhl lenhh)) { $self->{$_} = 0 }
 	$self->{digestlen} = $alg == 1 ? 20 : $alg/8;
 	if    ($alg == 1)   { $self->{sha} = \&_sha1;   $self->{H} = [@H01]   }
 	elsif ($alg == 224) { $self->{sha} = \&_sha256; $self->{H} = [@H0224] }
@@ -482,7 +484,7 @@ sub _shadirect {
 	my $offset = 0;
 	my $blockbytes = $self->{blocksize} >> 3;
 	while ($bitcnt >= $self->{blocksize}) {
-		$self->{sha}->($self, substr($bitstr, $offset, $blockbytes));
+		&{$self->{sha}}($self, substr($bitstr, $offset, $blockbytes));
 		$offset += $blockbytes;
 		$bitcnt -= $self->{blocksize};
 	}
@@ -502,7 +504,7 @@ sub _shabytes {
 		$self->{block} .= substr($bitstr, 0, $numbits >> 3);
 		$bitcnt -= $numbits;
 		$bitstr = substr($bitstr, $numbits >> 3, _BYTECNT($bitcnt));
-		$self->{sha}->($self, $self->{block});
+		&{$self->{sha}}($self, $self->{block});
 		$self->{block} = "";
 		$self->{blockcnt} = 0;
 		_shadirect($bitstr, $bitcnt, $self);
@@ -516,7 +518,7 @@ sub _shabytes {
 
 sub _shabits {
 	my($bitstr, $bitcnt, $self) = @_;
-	my(@buf);
+	my($i, @buf);
 	my $numbytes = _BYTECNT($bitcnt);
 	my $savecnt = $bitcnt;
 	my $gap = 8 - $self->{blockcnt} % 8;
@@ -528,12 +530,12 @@ sub _shabits {
 	$self->{blockcnt} += ($bitcnt < $gap) ? $bitcnt : $gap;
 	return($savecnt) if $bitcnt < $gap;
 	if ($self->{blockcnt} == $self->{blocksize}) {
-		$self->{sha}->($self, $self->{block});
+		&{$self->{sha}}($self, $self->{block});
 		$self->{block} = "";
 		$self->{blockcnt} = 0;
 	}
 	return($savecnt) if ($bitcnt -= $gap) == 0;
-	for (my $i = 0; $i < $numbytes - 1; $i++) {
+	for ($i = 0; $i < $numbytes - 1; $i++) {
 		$buf[$i] = (($b[$i] << $gap) & 0xff) | ($b[$i+1] >> (8 - $gap));
 	}
 	$buf[$numbytes-1] = ($b[$numbytes-1] << $gap) & 0xff;
@@ -544,7 +546,20 @@ sub _shabits {
 sub _shawrite {
 	my($bitstr, $bitcnt, $self) = @_;
 	return(0) unless $bitcnt > 0;
-	no integer; $self->{len} += $bitcnt; use integer;
+	no integer;
+	if (($self->{lenll} += $bitcnt) >= $TWO32) {
+		$self->{lenll} -= $TWO32;
+		if (++$self->{lenlh} >= $TWO32) {
+			$self->{lenlh} -= $TWO32;
+			if (++$self->{lenhl} >= $TWO32) {
+				$self->{lenhl} -= $TWO32;
+				if (++$self->{lenhh} >= $TWO32) {
+					$self->{lenhh} -= $TWO32;
+				}
+			}
+		}
+	}
+	use integer;
 	my $blockcnt = $self->{blockcnt};
 	return(_shadirect($bitstr, $bitcnt, $self)) if $blockcnt == 0;
 	return(_shabytes ($bitstr, $bitcnt, $self)) if $blockcnt % 8 == 0;
@@ -560,7 +575,7 @@ sub _shafinish {
 			_CLRBIT($self, $self->{blockcnt}++);
 		}
 		else {
-			$self->{sha}->($self, $self->{block});
+			&{$self->{sha}}($self, $self->{block});
 			$self->{block} = "";
 			$self->{blockcnt} = 0;
 		}
@@ -568,12 +583,13 @@ sub _shafinish {
 	while ($self->{blockcnt} < $LENPOS) {
 		_CLRBIT($self, $self->{blockcnt}++);
 	}
-	$self->{block} .= pack("NN", 0, 0) if $self->{blocksize} > 512;
-	no integer;
-		$self->{block} .= pack("N", int($self->{len} / $TWO32));
-		$self->{block} .= pack("N", $self->{len} % $TWO32);
-	use integer;
-	$self->{sha}->($self, $self->{block});
+	if ($self->{blocksize} > 512) {
+		$self->{block} .= pack("N", $self->{lenhh} & $MAX32);
+		$self->{block} .= pack("N", $self->{lenhl} & $MAX32);
+	}
+	$self->{block} .= pack("N", $self->{lenlh} & $MAX32);
+	$self->{block} .= pack("N", $self->{lenll} & $MAX32);
+	&{$self->{sha}}($self, $self->{block});
 }
 
 sub _shadigest { my($self) = @_; _digcpy($self); $self->{digest} }
@@ -606,7 +622,7 @@ sub _shacpy {
 	$to->{block} = $from->{block};
 	$to->{blockcnt} = $from->{blockcnt};
 	$to->{blocksize} = $from->{blocksize};
-	no integer; $to->{len} = $from->{len}; use integer;
+	for (qw(lenhh lenhl lenlh lenll)) { $to->{$_} = $from->{$_} }
 	$to->{digestlen} = $from->{digestlen};
 	$to;
 }
@@ -617,7 +633,7 @@ sub _shadump {
 	my $file = shift;
 	$file = "-" if (!defined($file) || $file eq "");
 
-	open(my $fh, ">$file") or return;	## no critic
+	my $fh = FileHandle->new($file, "w") or return;
 	my $self = shift;
 	my $is32bit = $self->{alg} <= 256;
 	my $fmt = $is32bit ? ":%08x" : ":%016x";
@@ -634,11 +650,10 @@ sub _shadump {
 
 	printf $fh "\nblockcnt:%u\n", $self->{blockcnt};
 
-	no integer;
-		printf $fh "lenhh:%lu\nlenhl:%lu\n", 0, 0;
-		printf $fh "lenlh:%lu\n", $self->{len} / $TWO32;
-		printf $fh "lenll:%lu\n", $self->{len} % $TWO32;
-	use integer;
+	printf $fh "lenhh:%lu\n", $self->{lenhh} & $MAX32;
+	printf $fh "lenhl:%lu\n", $self->{lenhl} & $MAX32;
+	printf $fh "lenlh:%lu\n", $self->{lenlh} & $MAX32;
+	printf $fh "lenll:%lu\n", $self->{lenll} & $MAX32;
 
 	close($fh);
 	$self;
@@ -662,7 +677,7 @@ sub _shaload {
 	my $file = shift;
 	$file = "-" if (!defined($file) || $file eq "");
 
-	open(my $fh, "<$file") or return;	## no critic
+	my $fh = FileHandle->new($file, "r") or return;
 
 	my @f = _match($fh, "alg") or return;
 	my $self = _shaopen(shift(@f)) or return;
@@ -683,11 +698,13 @@ sub _shaload {
 	$self->{block} = substr($self->{block},0,_BYTECNT($self->{blockcnt}));
 
 	@f = _match($fh, "lenhh") or return;
+	$self->{lenhh} = shift(@f);
 	@f = _match($fh, "lenhl") or return;
+	$self->{lenhl} = shift(@f);
 	@f = _match($fh, "lenlh") or return;
-	no integer; $self->{len} = shift(@f) * $TWO32; use integer;
+	$self->{lenlh} = shift(@f);
 	@f = _match($fh, "lenll") or return;
-	no integer; $self->{len} += shift(@f); use integer;
+	$self->{lenll} = shift(@f);
 
 	close($fh);
 	$self;
@@ -738,15 +755,16 @@ sub _hmacbase64 { my($self) = @_; _shabase64($self->{osha}) }
 my @suffix_extern = ("", "_hex", "_base64");
 my @suffix_intern = ("digest", "hex", "base64");
 
-for my $alg (1, 224, 256, 384, 512) {
-	for my $i (0 .. 2) {
+my($i, $alg);
+for $alg (1, 224, 256, 384, 512) {
+	for $i (0 .. 2) {
 		my $fcn = 'sub sha' . $alg . $suffix_extern[$i] . ' {
 			my $state = _shaopen(' . $alg . ') or return;
 			for (@_) { _shawrite($_, length($_) << 3, $state) }
 			_shafinish($state);
 			_sha' . $suffix_intern[$i] . '($state);
 		}';
-		eval($fcn);		## no critic
+		eval($fcn);
 		push(@EXPORT_OK, 'sha' . $alg . $suffix_extern[$i]);
 		$fcn = 'sub hmac_sha' . $alg . $suffix_extern[$i] . ' {
 			my $state = _hmacopen(' . $alg . ', pop(@_)) or return;
@@ -754,7 +772,7 @@ for my $alg (1, 224, 256, 384, 512) {
 			_hmacfinish($state);
 			_hmac' . $suffix_intern[$i] . '($state);
 		}';
-		eval($fcn);		## no critic
+		eval($fcn);
 		push(@EXPORT_OK, 'hmac_sha' . $alg . $suffix_extern[$i]);
 	}
 }
@@ -860,32 +878,32 @@ sub _Addfile {
 	my ($binary, $portable) = map { $_ eq $mode } ("b", "p");
 	my $text = -T $file;
 
-	open(my $fh, "<$file") 			## no critic
-		or _bail("Open failed");
-	binmode($fh) if $binary || $portable;
+	local *FH;
+	open(FH, "<$file") or _bail("Open failed");
+	binmode(FH) if $binary || $portable;
 
 	unless ($portable && $text) {
-		$self->_addfile($fh);
-		close($fh);
+		$self->_addfile(*FH);
+		close(FH);
 		return($self);
 	}
 
 	my ($n1, $n2);
 	my ($buf1, $buf2) = ("", "");
 
-	while (($n1 = read($fh, $buf1, 4096))) {
+	while (($n1 = read(FH, $buf1, 4096))) {
 		while (substr($buf1, -1) eq "\015") {
-			$n2 = read($fh, $buf2, 4096);
+			$n2 = read(FH, $buf2, 4096);
 			_bail("Read failed") unless defined $n2;
 			last unless $n2;
 			$buf1 .= $buf2;
 		}
 		$buf1 =~ s/\015?\015\012/\012/g; 	# DOS/Windows
-		$buf1 =~ s/\015/\012/g;          	# Apple/MacOS 9
+		$buf1 =~ s/\015/\012/g;          	# early MacOS
 		$self->add($buf1);
 	}
 	_bail("Read failed") unless defined $n1;
-	close($fh);
+	close(FH);
 
 	$self;
 }
@@ -917,7 +935,7 @@ __END__
 
 Digest::SHA::PurePerl - Perl implementation of SHA-1/224/256/384/512
 
-=head1 SYNOPSIS (SHA)
+=head1 SYNOPSIS
 
 In programs:
 
@@ -1143,7 +1161,7 @@ its SHA-1/224/256/384/512 digest encoded as a Base64 string.
 It's important to note that the resulting string does B<not> contain
 the padding characters typical of Base64 encodings.  This omission is
 deliberate, and is done to maintain compatibility with the family of
-CPAN Digest modules.  See L</"BASE64 DIGESTS"> for details.
+CPAN Digest modules.  See L</"PADDING OF BASE64 DIGESTS"> for details.
 
 =back
 
@@ -1298,7 +1316,7 @@ system.  Otherwise, a functionally equivalent substitute is used.
 It's important to note that the resulting string does B<not> contain
 the padding characters typical of Base64 encodings.  This omission is
 deliberate, and is done to maintain compatibility with the family of
-CPAN Digest modules.  See L</"BASE64 DIGESTS"> for details.
+CPAN Digest modules.  See L</"PADDING OF BASE64 DIGESTS"> for details.
 
 =back
 
@@ -1354,7 +1372,7 @@ in the list.
 It's important to note that the resulting string does B<not> contain
 the padding characters typical of Base64 encodings.  This omission is
 deliberate, and is done to maintain compatibility with the family of
-CPAN Digest modules.  See L</"BASE64 DIGESTS"> for details.
+CPAN Digest modules.  See L</"PADDING OF BASE64 DIGESTS"> for details.
 
 =back
 
@@ -1380,6 +1398,7 @@ The author is particularly grateful to
 
 	Gisle Aas
 	Chris Carey
+	Jim Doble
 	Julius Duque
 	Jeffrey Friedl
 	Robert Gilmour
@@ -1397,7 +1416,7 @@ for their valuable comments and suggestions.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2006 Mark Shelor
+Copyright (C) 2003-2007 Mark Shelor
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
