@@ -8,7 +8,7 @@ use ExtUtils::MakeMaker;
 	'EXE_FILES'	=> [ 'shasum' ],
 );
 
-$att{NO_META} = 1
-	unless $ExtUtils::MakeMaker::VERSION < 6.10_03;
+my $MMversion = $ExtUtils::MakeMaker::VERSION || 0;
+$att{NO_META} = 1 unless $MMversion < 6.10_03;
 
 WriteMakefile(%att);

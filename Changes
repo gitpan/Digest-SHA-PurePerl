@@ -1,5 +1,12 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.46  Wed Apr  9 05:04:00 MST 2008
+	- modified _Addfile to recognize leading and trailing
+		whitespace in filenames (ref. rt.cpan.org #34690)
+	- previous version commandeered the warnings flag ($^W)
+		-- this version disables warnings only when
+			compiling 64-bit constants
+
 5.45  Tue Jun 26 02:36:00 MST 2007
 	- extended portability to earlier Perls
 		-- works on Perl 5.003 and later

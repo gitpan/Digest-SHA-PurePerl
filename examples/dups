@@ -49,9 +49,9 @@ die "usage: dups files ...\n" unless @ARGV;
 my @files = grep { -f $_ } @ARGV;
 
 my %dups;
-for my $file (@files) {
-	my $digest = Digest::SHA::PurePerl->new->addfile($file, "b")->hexdigest;
-	push(@{$dups{$digest}}, $file);
+for (@files) {
+	my $digest = Digest::SHA::PurePerl->new->addfile($_, "b")->hexdigest;
+	push(@{$dups{$digest}}, $_);
 }
 
 for (keys %dups) {

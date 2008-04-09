@@ -7,7 +7,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use integer;
 use FileHandle;
 
-$VERSION = '5.45';
+$VERSION = '5.46';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -311,7 +311,12 @@ my $sha512 = \&_sha512_placeholder;
 
 my $_64bit_code = '
 
-BEGIN { $^W = 0 }	# suppress warnings triggered by 64-bit constants
+my $w_flag;
+
+BEGIN {
+	$w_flag = $^W;		# suppress compiler warnings about
+	$^W = 0;		# non-portable 64-bit constants
+}
 
 my @K512 = (
 	0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f,
@@ -351,6 +356,8 @@ my @K512 = (
 	0x6a09e667f3bcc908, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b,
 	0xa54ff53a5f1d36f1, 0x510e527fade682d1, 0x9b05688c2b3e6c1f,
 	0x1f83d9abfb41bd6b, 0x5be0cd19137e2179);
+
+BEGIN { $^W = $w_flag }		# restore prior warning state
 
 sub _c_SL64 { my($x, $n) = @_; "($x << $n)" }
 
@@ -879,7 +886,10 @@ sub _Addfile {
 	my $text = -T $file;
 
 	local *FH;
-	open(FH, "<$file") or _bail("Open failed");
+		# protect any leading or trailing whitespace in $file;
+		# otherwise, 2-arg "open" will ignore them
+	$file =~ s#^(\s)#./$1#;
+	open(FH, "< $file\0") or _bail("Open failed");
 	binmode(FH) if $binary || $portable;
 
 	unless ($portable && $text) {
@@ -1416,7 +1426,7 @@ for their valuable comments and suggestions.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2007 Mark Shelor
+Copyright (C) 2003-2008 Mark Shelor
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
