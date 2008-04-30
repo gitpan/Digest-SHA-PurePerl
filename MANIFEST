@@ -2,10 +2,10 @@ Changes
 Makefile.PL
 MANIFEST
 META.yml
-PurePerl.pm
 README
 shasum
 examples/dups
+lib/Digest/SHA/PurePerl.pm
 t/allfcns.t
 t/base64.t
 t/bitbuf.t

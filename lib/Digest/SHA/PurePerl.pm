@@ -7,7 +7,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use integer;
 use FileHandle;
 
-$VERSION = '5.46';
+$VERSION = '5.47';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -1267,9 +1267,9 @@ argument to one of the following values:
 
 The "p" mode is handy since it ensures that the digest value of
 I<$filename> will be the same when computed on different operating
-systems.  It accomplishes this by internally translating all newlines
-in text files to UNIX format before calculating the digest; on the other
-hand, binary files are read in raw mode with no translation whatsoever.
+systems.  It accomplishes this by internally translating all newlines in
+text files to UNIX format before calculating the digest.  Binary files
+are read in raw mode with no translation whatsoever.
 
 For a fuller discussion of newline formats, refer to CPAN module
 L<File::LocalizeNewlines>.  Its "universal line separator" regex forms
@@ -1408,6 +1408,7 @@ The author is particularly grateful to
 
 	Gisle Aas
 	Chris Carey
+	Alexandr Ciornii
 	Jim Doble
 	Julius Duque
 	Jeffrey Friedl
