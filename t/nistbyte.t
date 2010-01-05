@@ -1,6 +1,6 @@
 # Test against SHA-1 Sample Vectors from NIST
 #
-#	ref: http://csrc.nist.gov/cryptval/shs.html
+#	ref: http://www.nsrl.nist.gov/testdata/
 
 use strict;
 
