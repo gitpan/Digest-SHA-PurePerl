@@ -4,10 +4,11 @@ require 5.003000;
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
+use Fcntl;
 use integer;
 use FileHandle;
 
-$VERSION = '5.48';
+$VERSION = '5.49';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -885,11 +886,14 @@ sub _Addfile {
 	my ($binary, $portable) = map { $_ eq $mode } ("b", "p");
 	my $text = -T $file;
 
+		## Use sysopen to accommodate full range of POSIX
+		## file names; fall back to open for magic (-)
 	local *FH;
-		# protect any leading or trailing whitespace in $file;
-		# otherwise, 2-arg "open" will ignore them
-	$file =~ s#^(\s)#./$1#;
-	open(FH, "< $file\0") or _bail("Open failed");
+	unless (sysopen(FH, $file, O_RDONLY)) {
+		unless ($file eq '-' && open(FH, '<&STDIN')) {
+			_bail("Open failed");
+		}
+	}
 	binmode(FH) if $binary || $portable;
 
 	unless ($portable && $text) {
@@ -1407,6 +1411,7 @@ L<http://csrc.nist.gov/publications/fips/fips198/fips-198a.pdf>
 The author is particularly grateful to
 
 	Gisle Aas
+	Sean Burke
 	Chris Carey
 	Alexandr Ciornii
 	Jim Doble
