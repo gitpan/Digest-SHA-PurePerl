@@ -23,12 +23,12 @@ dups - Show Duplicate Files
  of duplicates, so the output is written as follows:
 
  match1_file1
- 	match1_file2
+	match1_file2
 	match1_file3
 	etc.
 
  match2_file1
- 	match2_file2
+	match2_file2
 	etc.
 
 =head1 AUTHOR
