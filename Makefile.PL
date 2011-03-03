@@ -1,10 +1,11 @@
 require 5.003000;
 
+use strict;
 use ExtUtils::MakeMaker;
 
 my $PM = 'lib/Digest/SHA/PurePerl.pm';
 
-%att = (
+my %att = (
 	'NAME'		=> 'Digest::SHA::PurePerl',
 	'VERSION_FROM'	=> $PM,
 	'EXE_FILES'	=> [ 'shasum' ],
