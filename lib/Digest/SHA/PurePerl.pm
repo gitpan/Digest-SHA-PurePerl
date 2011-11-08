@@ -8,7 +8,7 @@ use Fcntl;
 use integer;
 use FileHandle;
 
-$VERSION = '5.62';
+$VERSION = '5.63';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -583,6 +583,21 @@ sub _shawrite {
 	return(_shabits  ($bitstr, $bitcnt, $self));
 }
 
+my $MWS = 16384;
+
+sub _shaWrite {
+	my($bytestr_r, $bytecnt, $self) = @_;
+	return(0) unless $bytecnt > 0;
+	return(_shawrite($$bytestr_r, $bytecnt<<3, $self)) if $bytecnt <= $MWS;
+	my $offset = 0;
+	while ($bytecnt > $MWS) {
+		_shawrite(substr($$bytestr_r, $offset, $MWS), $MWS<<3, $self);
+		$offset  += $MWS;
+		$bytecnt -= $MWS;
+	}
+	_shawrite(substr($$bytestr_r, $offset, $bytecnt), $bytecnt<<3, $self);
+}
+
 sub _shafinish {
 	my($self) = @_;
 	my $LENPOS = $self->{alg} <= 256 ? 448 : 896;
@@ -750,9 +765,9 @@ sub _hmacopen {
 	$self;
 }
 
-sub _hmacwrite {
-	my($bitstr, $bitcnt, $self) = @_;
-	_shawrite($bitstr, $bitcnt, $self->{isha});
+sub _hmacWrite {
+	my($bytestr_r, $bytecnt, $self) = @_;
+	_shaWrite($bytestr_r, $bytecnt, $self->{isha});
 }
 
 sub _hmacfinish {
@@ -777,7 +792,7 @@ for $alg (1, 224, 256, 384, 512, 512224, 512256) {
 	for $i (0 .. 2) {
 		my $fcn = 'sub sha' . $alg . $suffix_extern[$i] . ' {
 			my $state = _shaopen(' . $alg . ') or return;
-			for (@_) { _shawrite($_, length($_) << 3, $state) }
+			for (@_) { _shaWrite(\$_, length($_), $state) }
 			_shafinish($state);
 			_sha' . $suffix_intern[$i] . '($state);
 		}';
@@ -785,7 +800,7 @@ for $alg (1, 224, 256, 384, 512, 512224, 512256) {
 		push(@EXPORT_OK, 'sha' . $alg . $suffix_extern[$i]);
 		$fcn = 'sub hmac_sha' . $alg . $suffix_extern[$i] . ' {
 			my $state = _hmacopen(' . $alg . ', pop(@_)) or return;
-			for (@_) { _hmacwrite($_, length($_) << 3, $state) }
+			for (@_) { _hmacWrite(\$_, length($_), $state) }
 			_hmacfinish($state);
 			_hmac' . $suffix_intern[$i] . '($state);
 		}';
@@ -801,7 +816,7 @@ sub algorithm { my $self = shift; $self->{alg} }
 
 sub add {
 	my $self = shift;
-	for (@_) { _shawrite($_, length($_) << 3, $self) }
+	for (@_) { _shaWrite(\$_, length($_), $self) }
 	$self;
 }
 
@@ -1445,6 +1460,7 @@ The author is particularly grateful to
 	Chris Carey
 	Alexandr Ciornii
 	Jim Doble
+	Thomas Drugeon
 	Julius Duque
 	Jeffrey Friedl
 	Robert Gilmour
