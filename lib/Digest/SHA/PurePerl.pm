@@ -8,7 +8,7 @@ use Fcntl;
 use integer;
 use FileHandle;
 
-$VERSION = '5.63';
+$VERSION = '5.70';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -876,6 +876,7 @@ sub add_bits {
 		$nbits = length($data);
 		$data = pack("B*", $data);
 	}
+	$nbits = length($data) * 8 if $nbits > length($data) * 8;
 	_shawrite($data, $nbits, $self);
 	return($self);
 }
@@ -907,7 +908,7 @@ sub _Addfile {
 	return(_addfile($self, $file)) unless ref(\$file) eq 'SCALAR';
 
 	$mode = defined($mode) ? $mode : "";
-	my ($binary, $portable) = map { $_ eq $mode } ("b", "p");
+	my ($binary, $portable, $BITS) = map { $_ eq $mode } ("b", "p", "0");
 
 		## Always interpret "-" to mean STDIN; otherwise use
 		## sysopen to handle full range of POSIX file names
@@ -915,8 +916,19 @@ sub _Addfile {
 	$file eq '-' and open(FH, '< -')
 		or sysopen(FH, $file, O_RDONLY)
 			or _bail('Open failed');
-	binmode(FH) if $binary || $portable;
 
+	if ($BITS) {
+		my ($n, $buf) = (0, "");
+		while (($n = read(FH, $buf, 4096))) {
+			$buf =~ s/[^01]//g;
+			$self->add_bits($buf);
+		}
+		_bail("Read failed") unless defined $n;
+		close(FH);
+		return($self);
+	}
+
+	binmode(FH) if $binary || $portable;
 	unless ($portable && -T $file) {
 		$self->_addfile(*FH);
 		close(FH);
@@ -1302,15 +1314,20 @@ argument to one of the following values:
 
 	"p"	use portable mode
 
-The "p" mode is handy since it ensures that the digest value of
-I<$filename> will be the same when computed on different operating
-systems.  It accomplishes this by internally translating all newlines in
-text files to UNIX format before calculating the digest.  Binary files
-are read in raw mode with no translation whatsoever.
+	"0"	use BITS mode
 
-For a fuller discussion of newline formats, refer to CPAN module
-L<File::LocalizeNewlines>.  Its "universal line separator" regex forms
-the basis of I<addfile>'s portable mode processing.
+The "p" mode ensures that the digest value of I<$filename> will be the
+same when computed on different operating systems.  It accomplishes
+this by internally translating all newlines in text files to UNIX format
+before calculating the digest.  Binary files are read in raw mode with
+no translation whatsoever.
+
+The BITS mode ("0") interprets the contents of I<$filename> as a logical
+stream of bits, where each ASCII '0' or '1' character represents a 0 or
+1 bit, respectively.  All other characters are ignored.  This provides
+a convenient way to calculate the digest values of partial-byte data by
+using files, rather than having to write programs using the I<add_bits>
+method.
 
 =item B<dump($filename)>
 
