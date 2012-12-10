@@ -8,7 +8,7 @@ use Fcntl;
 use integer;
 use FileHandle;
 
-$VERSION = '5.74';
+$VERSION = '5.80';
 
 require Exporter;
 @ISA = qw(Exporter);
