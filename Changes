@@ -1,5 +1,11 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.81  Mon Jan 14 05:17:08 MST 2013
+	- harmonized with Digest::SHA (Bug #54490: unicode problems)
+		-- perform utf8::downgrade for Perl 5.8+
+			-- croak on wide character inputs
+		-- thanks to Victor Efimov for suggestions
+
 5.80  Mon Dec 10 14:15:26 MST 2012
 	- changes only to Digest::SHA for version 5.80
 
