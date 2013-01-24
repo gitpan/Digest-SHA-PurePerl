@@ -7,8 +7,9 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use Fcntl;
 use integer;
 use FileHandle;
+use Carp qw(croak);
 
-$VERSION = '5.81';
+$VERSION = '5.82';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -583,12 +584,31 @@ sub _shawrite {
 	return(_shabits  ($bitstr, $bitcnt, $self));
 }
 
-sub _downgrade {
-	eval { utf8::downgrade($_[0]) };
-	if ($@ && $@ =~ /Wide character/) {
-		require Carp;
-		Carp::croak('Wide character in subroutine entry');
+my $no_downgrade = 'sub utf8::downgrade { 1 }';
+
+my $pp_downgrade = q {
+	sub utf8::downgrade {
+
+		# No need to downgrade if character and byte
+		# semantics are equivalent.  But this might
+		# leave the UTF-8 flag set, harmlessly.
+
+		require bytes;
+		return 1 if length($_[0]) == bytes::length($_[0]);
+
+		use utf8;
+		croak 'Wide character in subroutine entry'
+			if $_[0] =~ /[^\x00-\xff]/;
+		$_[0] = pack('C*', unpack('U*', $_[0]));
+		return 1;
 	}
+};
+
+{
+	no integer;
+
+	if    ($] < 5.006)	{ eval $no_downgrade }
+	elsif ($] < 5.008)	{ eval $pp_downgrade }
 }
 
 my $MWS = 16384;
@@ -596,7 +616,7 @@ my $MWS = 16384;
 sub _shaWrite {
 	my($bytestr_r, $bytecnt, $self) = @_;
 	return(0) unless $bytecnt > 0;
-	{ no integer; _downgrade($$bytestr_r) unless $] < 5.008 }
+	utf8::downgrade($$bytestr_r);
 	return(_shawrite($$bytestr_r, $bytecnt<<3, $self)) if $bytecnt <= $MWS;
 	my $offset = 0;
 	while ($bytecnt > $MWS) {
@@ -758,7 +778,7 @@ sub _hmacopen {
 	my($self);
 	$self->{isha} = _shaopen($alg) or return;
 	$self->{osha} = _shaopen($alg) or return;
-	{ no integer; _downgrade($key) unless $] < 5.008 }
+	utf8::downgrade($key);
 	if (length($key) > $self->{osha}->{blocksize} >> 3) {
 		$self->{ksha} = _shaopen($alg) or return;
 		_shawrite($key, length($key) << 3, $self->{ksha});
@@ -895,8 +915,7 @@ sub _bail {
 	my $msg = shift;
 
 	$msg .= ": $!";
-        require Carp;
-        Carp::croak($msg);
+        croak $msg;
 }
 
 sub _addfile {
@@ -1126,21 +1145,43 @@ I<sha_base64()> functions.
 	use Digest::SHA::PurePerl qw(hmac_sha256_hex);
 	print hmac_sha256_hex("Hi There", chr(0x0b) x 32), "\n";
 
+=head1 UNICODE AND SIDE EFFECTS
+
+Perl supports Unicode strings as of version 5.6.  Such strings may
+contain wide characters, namely, characters whose ordinal values are
+greater than 255.  This can cause problems for digest algorithms such
+as SHA that are specified to operate on sequences of bytes.
+
+The rule by which Digest::SHA::PurePerl handles a Unicode string is easy
+to state, but potentially confusing to grasp: the string is interpreted
+as a sequence of bytes, where each byte is equal to the ordinal value
+(viz. code point) of its corresponding Unicode character.  That way,
+the Unicode version of the string 'abc' has exactly the same digest
+value as the ordinary string 'abc'.
+
+Since a wide character does not fit into a byte, the Digest::SHA::PurePerl
+routines croak if they encounter one.  Whereas if a Unicode string
+contains no wide characters, the module accepts it quite happily.
+The following code illustrates the two cases:
+
+	$str1 = pack('U*', (0..255));
+	print sha1_hex($str1);		# ok
+
+	$str2 = pack('U*', (0..256));
+	print sha1_hex($str2);		# croaks
+
+Be aware that the digest routines silently convert UTF-8 input into its
+equivalent byte sequence in the native encoding (cf. utf8::downgrade).
+This side effect only influences the way Perl stores data internally.
+
 =head1 NIST STATEMENT ON SHA-1
 
-I<NIST was recently informed that researchers had discovered a way
-to "break" the current Federal Information Processing Standard SHA-1
-algorithm, which has been in effect since 1994. The researchers
-have not yet published their complete results, so NIST has not
-confirmed these findings. However, the researchers are a reputable
-research team with expertise in this area.>
+NIST acknowledges that the work of Prof. Xiaoyun Wang constitutes a
+practical collision attack on SHA-1.  Therefore, NIST encourages the
+rapid adoption of the SHA-2 hash functions (e.g. SHA-256) for applications
+requiring strong collision resistance, such as digital signatures.
 
-I<Due to advances in computing power, NIST already planned to phase
-out SHA-1 in favor of the larger and stronger hash functions (SHA-224,
-SHA-256, SHA-384 and SHA-512) by 2010. New developments should use
-the larger and stronger hash functions.>
-
-ref. L<http://www.csrc.nist.gov/pki/HashWorkshop/NIST%20Statement/Burr_Mar2005.html>
+ref. L<http://csrc.nist.gov/groups/ST/hash/statement.html>
 
 =head1 PADDING OF BASE64 DIGESTS
 
@@ -1511,7 +1552,7 @@ darkness and moored it in so perfect a calm and in so brilliant a light"
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2012 Mark Shelor
+Copyright (C) 2003-2013 Mark Shelor
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

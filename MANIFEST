@@ -27,4 +27,5 @@ t/sha224.t
 t/sha256.t
 t/sha384.t
 t/sha512.t
+t/unicode.t
 t/woodbury.t
