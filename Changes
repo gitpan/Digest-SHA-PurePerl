@@ -1,5 +1,10 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.83  Mon Mar  4 08:12:00 MST 2013
+	- trimmed "Wide character" error messages on Perl 5.8+
+		-- too much unhelpful info from utf8::downgrade
+		-- error messages now identical on Perl 5.6+
+
 5.82  Thu Jan 24 04:54:12 MST 2013
 	- added code to emulate utf8::downgrade for Perl 5.6
 		-- module behavior now consistent under all Perls 5.6+

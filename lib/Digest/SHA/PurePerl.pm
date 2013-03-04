@@ -9,7 +9,7 @@ use integer;
 use FileHandle;
 use Carp qw(croak);
 
-$VERSION = '5.82';
+$VERSION = '5.83';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -597,8 +597,7 @@ my $pp_downgrade = q {
 		return 1 if length($_[0]) == bytes::length($_[0]);
 
 		use utf8;
-		croak 'Wide character in subroutine entry'
-			if $_[0] =~ /[^\x00-\xff]/;
+		return 0 if $_[0] =~ /[^\x00-\xff]/;
 		$_[0] = pack('C*', unpack('U*', $_[0]));
 		return 1;
 	}
@@ -611,12 +610,13 @@ my $pp_downgrade = q {
 	elsif ($] < 5.008)	{ eval $pp_downgrade }
 }
 
+my $WSE = 'Wide character in subroutine entry';
 my $MWS = 16384;
 
 sub _shaWrite {
 	my($bytestr_r, $bytecnt, $self) = @_;
 	return(0) unless $bytecnt > 0;
-	utf8::downgrade($$bytestr_r);
+	croak $WSE unless utf8::downgrade($$bytestr_r, 1);
 	return(_shawrite($$bytestr_r, $bytecnt<<3, $self)) if $bytecnt <= $MWS;
 	my $offset = 0;
 	while ($bytecnt > $MWS) {
@@ -778,7 +778,7 @@ sub _hmacopen {
 	my($self);
 	$self->{isha} = _shaopen($alg) or return;
 	$self->{osha} = _shaopen($alg) or return;
-	utf8::downgrade($key);
+	croak $WSE unless utf8::downgrade($key, 1);
 	if (length($key) > $self->{osha}->{blocksize} >> 3) {
 		$self->{ksha} = _shaopen($alg) or return;
 		_shawrite($key, length($key) << 3, $self->{ksha});
@@ -1154,10 +1154,10 @@ as SHA that are specified to operate on sequences of bytes.
 
 The rule by which Digest::SHA::PurePerl handles a Unicode string is easy
 to state, but potentially confusing to grasp: the string is interpreted
-as a sequence of bytes, where each byte is equal to the ordinal value
-(viz. code point) of its corresponding Unicode character.  That way,
-the Unicode version of the string 'abc' has exactly the same digest
-value as the ordinary string 'abc'.
+as a sequence of byte values, where each byte value is equal to the
+ordinal value (viz. code point) of its corresponding Unicode character.
+That way, the Unicode string 'abc' has exactly the same digest value as
+the ordinary string 'abc'.
 
 Since a wide character does not fit into a byte, the Digest::SHA::PurePerl
 routines croak if they encounter one.  Whereas if a Unicode string
@@ -1172,7 +1172,8 @@ The following code illustrates the two cases:
 
 Be aware that the digest routines silently convert UTF-8 input into its
 equivalent byte sequence in the native encoding (cf. utf8::downgrade).
-This side effect only influences the way Perl stores data internally.
+This side effect influences only the way Perl stores the data internally,
+but otherwise leaves the actual value of the data intact.
 
 =head1 NIST STATEMENT ON SHA-1
 
