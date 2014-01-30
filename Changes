@@ -1,5 +1,8 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.86  Thu Jan 30 08:24:28 MST 2014
+	- changes only to Digest::SHA for version 5.86
+
 5.85  Wed Jun 26 04:05:26 MST 2013
 	- corrected typos in shasum script
 		-- ref. Bug #85430 (posted at Digest::SHA)

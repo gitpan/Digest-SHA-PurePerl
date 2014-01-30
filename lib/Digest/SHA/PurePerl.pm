@@ -9,7 +9,7 @@ use integer;
 use FileHandle;
 use Carp qw(croak);
 
-$VERSION = '5.85';
+$VERSION = '5.86';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -1553,7 +1553,7 @@ darkness and moored it in so perfect a calm and in so brilliant a light"
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2003-2013 Mark Shelor
+Copyright (C) 2003-2014 Mark Shelor
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
