@@ -32,9 +32,7 @@ if ($MODULE eq "Digest::SHA") {
 		B64digest
 		Hexdigest
 		shaclose
-		shadump
 		shadup
-		shaload
 		shaopen
 		sharewind
 		shawrite

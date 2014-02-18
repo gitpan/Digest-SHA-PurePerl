@@ -9,7 +9,6 @@ lib/Digest/SHA/PurePerl.pm
 t/allfcns.t
 t/base64.t
 t/bitbuf.t
-t/dumpload.t
 t/fips180-4.t
 t/fips198.t
 t/gg.t
@@ -27,5 +26,6 @@ t/sha224.t
 t/sha256.t
 t/sha384.t
 t/sha512.t
+t/state.t
 t/unicode.t
 t/woodbury.t

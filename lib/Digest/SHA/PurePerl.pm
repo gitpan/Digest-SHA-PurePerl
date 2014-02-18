@@ -9,7 +9,7 @@ use integer;
 use FileHandle;
 use Carp qw(croak);
 
-$VERSION = '5.86';
+$VERSION = '5.87';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -691,83 +691,76 @@ sub _shacpy {
 sub _shadup { my($self) = @_; my($copy); _shacpy($copy, $self) }
 
 sub _shadump {
-	my $file = shift;
-	my $fh = (!defined($file) || $file eq "")
-			? FileHandle->new("> -")
-			: FileHandle->new($file, "w") or return;
 	my $self = shift;
-	my $is32bit = $self->{alg} <= 256;
-	my $fmt = $is32bit ? ":%08x" : ":%016x";
+	for (qw(alg H block blockcnt lenhh lenhl lenlh lenll)) {
+		return unless defined $self->{$_};
+	}
 
-	printf $fh "alg:%d\n", $self->{alg};
+	my @state = ();
+	my $fmt = ($self->{alg} <= 256 ? "%08x" : "%016x");
 
-	printf $fh "H";
-	for (@{$self->{H}}) { printf $fh $fmt, $is32bit ? $_ & $MAX32 : $_ }
+	push(@state, "alg:" . $self->{alg});
 
-	printf $fh "\nblock";
+	my @H = map { $self->{alg} <= 256 ? $_ & $MAX32 : $_ } @{$self->{H}};
+	push(@state, "H:" . join(":", map { sprintf($fmt, $_) } @H));
+
 	my @c = unpack("C*", $self->{block});
 	push(@c, 0x00) while scalar(@c) < ($self->{blocksize} >> 3);
-	for (@c) { printf $fh ":%02x", $_ }
+	push(@state, "block:" . join(":", map {sprintf("%02x", $_)} @c));
+	push(@state, "blockcnt:" . $self->{blockcnt});
 
-	printf $fh "\nblockcnt:%u\n", $self->{blockcnt};
-
-	printf $fh "lenhh:%lu\n", $self->{lenhh} & $MAX32;
-	printf $fh "lenhl:%lu\n", $self->{lenhl} & $MAX32;
-	printf $fh "lenlh:%lu\n", $self->{lenlh} & $MAX32;
-	printf $fh "lenll:%lu\n", $self->{lenll} & $MAX32;
-
-	close($fh);
-	$self;
-}
-
-sub _match {
-	my($fh, $tag) = @_;
-	my @f;
-	while (<$fh>) {
-		s/^\s+//;
-		s/\s+$//;
-		next if (/^(#|$)/);
-		@f = split(/[:\s]+/);
-		last;
-	}
-	shift(@f) eq $tag or return;
-	return(@f);
+	push(@state, "lenhh:" . $self->{lenhh});
+	push(@state, "lenhl:" . $self->{lenhl});
+	push(@state, "lenlh:" . $self->{lenlh});
+	push(@state, "lenll:" . $self->{lenll});
+	join("\n", @state) . "\n";
 }
 
 sub _shaload {
-	my $file = shift;
-	my $fh = (!defined($file) || $file eq "")
-			? FileHandle->new("< -")
-			: FileHandle->new($file, "r") or return;
+	my $state = shift;
 
-	my @f = _match($fh, "alg") or return;
-	my $self = _shaopen(shift(@f)) or return;
+	my %s = ();
+	for (split(/\n/, $state)) {
+		s/^\s+//;
+		s/\s+$//;
+		next if (/^(#|$)/);
+		my @f = split(/[:\s]+/);
+		my $tag = shift(@f);
+		$s{$tag} = join('', @f);
+	}
 
-	@f = _match($fh, "H") or return;
-	my $numxdigits = $self->{alg} <= 256 ? 8 : 16;
-	for (@f) { $_ = "0" . $_ while length($_) < $numxdigits }
-	for (@f) { $_ = substr($_, 1) while length($_) > $numxdigits }
-	@{$self->{H}} = map { $self->{alg} <= 256 ? hex($_) :
-		((hex(substr($_, 0, 8)) << 16) << 16) |
-		hex(substr($_, 8)) } @f;
+	# H and block may contain arbitrary values, but check everything else
+	grep { $_ == $s{alg} } (1,224,256,384,512,512224,512256) or return;
+	length($s{H}) == ($s{alg} <= 256 ? 64 : 128) or return;
+	length($s{block}) == ($s{alg} <= 256 ? 128 : 256) or return;
+	{
+		no integer;
+		for (qw(blockcnt lenhh lenhl lenlh lenll)) {
+			0 <= $s{$_} or return;
+			$s{$_} <= 4294967295 or return;
+		}
+		$s{blockcnt} < ($s{alg} <= 256 ? 512 : 1024) or return;
+	}
 
-	@f = _match($fh, "block") or return;
-	for (@f) { $self->{block} .= chr(hex($_)) }
+	my $self = _shaopen($s{alg}) or return;
 
-	@f = _match($fh, "blockcnt") or return;
-	$self->{blockcnt} = shift(@f);
+	my @h = $s{H} =~ /(.{8})/g;
+	for (@{$self->{H}}) {
+		$_ = hex(shift @h);
+		if ($self->{alg} > 256) {
+			$_ = (($_ << 16) << 16) | hex(shift @h);
+		}
+	}
+
+	$self->{blockcnt} = $s{blockcnt};
+	$self->{block} = pack("H*", $s{block});
 	$self->{block} = substr($self->{block},0,_BYTECNT($self->{blockcnt}));
 
-	@f = _match($fh, "lenhh") or return;
-	$self->{lenhh} = shift(@f);
-	@f = _match($fh, "lenhl") or return;
-	$self->{lenhl} = shift(@f);
-	@f = _match($fh, "lenlh") or return;
-	$self->{lenlh} = shift(@f);
-	@f = _match($fh, "lenll") or return;
-	$self->{lenll} = shift(@f);
+	$self->{lenhh} = $s{lenhh};
+	$self->{lenhl} = $s{lenhl};
+	$self->{lenlh} = $s{lenlh};
+	$self->{lenll} = $s{lenll};
 
-	close($fh);
 	$self;
 }
 
@@ -985,12 +978,37 @@ sub _Addfile {
 	$self;
 }
 
+sub getstate {
+	my $self = shift;
+
+	return _shadump($self);
+}
+
+sub putstate {
+	my $class = shift;
+	my $state = shift;
+
+	if (ref($class)) {	# instance method
+		my $self = _shaload($state) or return;
+		return(_shacpy($class, $self));
+	}
+	my $self = _shaload($state) or return;
+	bless($self, $class);
+	return($self);
+}
+
 sub dump {
 	my $self = shift;
 	my $file = shift;
 
-	$file = "" unless defined $file;
-	_shadump($file, $self) or return;
+	my $state = $self->getstate or return;
+	$file = "-" if (!defined($file) || $file eq "");
+
+	local *FH;
+	open(FH, "> $file") or return;
+	print FH $state;
+	close(FH);
+
 	return($self);
 }
 
@@ -998,14 +1016,14 @@ sub load {
 	my $class = shift;
 	my $file = shift;
 
-	$file = "" unless defined $file;
-	if (ref($class)) {	# instance method
-		my $self = _shaload($file) or return;
-		return(_shacpy($class, $self));
-	}
-	my $self = _shaload($file) or return;
-	bless($self, $class);
-	return($self);
+	$file = "-" if (!defined($file) || $file eq "");
+	
+	local *FH;
+	open(FH, "< $file") or return;
+	my $str = join('', <FH>);
+	close(FH);
+
+	$class->putstate($str);
 }
 
 1;
@@ -1045,9 +1063,9 @@ In programs:
 	$sha->add_bits($bits);
 	$sha->add_bits($data, $nbits);
 
-	$sha_copy = $sha->clone;	# if needed, make copy of
-	$sha->dump($file);		#	current digest state,
-	$sha->load($file);		#	or save it on disk
+	$sha_copy = $sha->clone;	# make copy of digest object
+	$state = $sha->getstate;	# save current state to string
+	$sha->putstate($state);		# restore previous $state
 
 	$digest = $sha->digest;		# compute digest
 	$digest = $sha->hexdigest;
@@ -1123,16 +1141,15 @@ Note that for larger bit-strings, it's more efficient to use the
 two-argument version I<add_bits($data, $nbits)>, where I<$data> is
 in the customary packed binary format used for Perl strings.
 
-The module also lets you save intermediate SHA states to disk, or
-display them on standard output.  The I<dump()> method generates
-portable, human-readable text describing the current state of
-computation.  You can subsequently retrieve the file with I<load()>
-to resume where the calculation left off.
+The module also lets you save intermediate SHA states to a string.  The
+I<getstate()> method generates portable, human-readable text describing
+the current state of computation.  You can subsequently restore that
+state with I<putstate()> to resume where the calculation left off.
 
 To see what a state description looks like, just run the following:
 
 	use Digest::SHA::PurePerl;
-	Digest::SHA::PurePerl->new->add("Shaw" x 1962)->dump;
+	print Digest::SHA::PurePerl->new->add("Shaw" x 1962)->getstate;
 
 As an added convenience, the Digest::SHA::PurePerl module offers
 routines to calculate keyed hashes using the HMAC-SHA-1/224/256/384/512
@@ -1385,21 +1402,30 @@ a convenient way to calculate the digest values of partial-byte data by
 using files, rather than having to write programs using the I<add_bits>
 method.
 
+=item B<getstate>
+
+Returns a string containing a portable, human-readable representation
+of the current SHA state.
+
+=item B<putstate($str)>
+
+Returns a Digest::SHA object representing the SHA state contained
+in I<$str>.  The format of I<$str> matches the format of the output
+produced by method I<getstate>.  If called as a class method, a new
+object is created; if called as an instance method, the object is reset
+to the state contained in I<$str>.
+
 =item B<dump($filename)>
 
-Provides persistent storage of intermediate SHA states by writing
-a portable, human-readable representation of the current state to
-I<$filename>.  If the argument is missing, or equal to the empty
-string, the state information will be written to STDOUT.
+Writes the output of I<getstate> to I<$filename>.  If the argument is
+missing, or equal to the empty string, the state information will be
+written to STDOUT.
 
 =item B<load($filename)>
 
-Returns a Digest::SHA::PurePerl object representing the intermediate
-SHA state that was previously dumped to I<$filename>.  If called
-as a class method, a new object is created; if called as an instance
-method, the object is reset to the state contained in I<$filename>.
-If the argument is missing, or equal to the empty string, the state
-information will be read from STDIN.
+Returns a Digest::SHA object that results from calling I<putstate> on
+the contents of I<$filename>.  If the argument is missing, or equal to
+the empty string, the state information will be read from STDIN.
 
 =item B<digest>
 

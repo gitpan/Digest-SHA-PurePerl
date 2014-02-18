@@ -1,5 +1,9 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.87  Mon Feb 17 16:42:02 MST 2014
+	- simplified capture of intermediate SHA states
+		-- can now be done via strings (ref. getstate/putstate)
+
 5.86  Thu Jan 30 08:24:28 MST 2014
 	- changes only to Digest::SHA for version 5.86
 
