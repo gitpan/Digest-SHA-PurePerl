@@ -1,5 +1,13 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.88  Mon Mar 17 08:46:10 MST 2014
+	- changed text file test (-T) to act on filehandles
+		-- ref. addfile portable mode
+		-- improves consistency when reading from STDIN
+		-- still acts on filenames for early Perls (< 5.6)
+	- added -M and -V options to shasum
+		-- undocumented: for development and testing use only
+
 5.87  Mon Feb 17 16:42:02 MST 2014
 	- simplified capture of intermediate SHA states
 		-- can now be done via strings (ref. getstate/putstate)

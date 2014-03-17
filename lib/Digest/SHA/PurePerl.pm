@@ -9,7 +9,7 @@ use integer;
 use FileHandle;
 use Carp qw(croak);
 
-$VERSION = '5.87';
+$VERSION = '5.88';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -925,6 +925,20 @@ sub _addfile {
     $self;
 }
 
+my $_can_T_filehandle;
+
+sub _istext {
+	local *FH = shift;
+	my $file = shift;
+
+	if (! defined $_can_T_filehandle) {
+		local $^W = 0;
+		eval { -T FH };
+		$_can_T_filehandle = $@ ? 0 : 1;
+	}
+	return $_can_T_filehandle ? -T FH : -T $file;
+}
+
 sub _Addfile {
 	my ($self, $file, $mode) = @_;
 
@@ -952,27 +966,17 @@ sub _Addfile {
 	}
 
 	binmode(FH) if $binary || $portable;
-	unless ($portable && -T $file) {
+	unless ($portable && _istext(*FH, $file)) {
 		$self->_addfile(*FH);
 		close(FH);
 		return($self);
 	}
 
-	my ($n1, $n2);
-	my ($buf1, $buf2) = ("", "");
-
-	while (($n1 = read(FH, $buf1, 4096))) {
-		while (substr($buf1, -1) eq "\015") {
-			$n2 = read(FH, $buf2, 4096);
-			_bail("Read failed") unless defined $n2;
-			last unless $n2;
-			$buf1 .= $buf2;
-		}
-		$buf1 =~ s/\015?\015\012/\012/g;	# DOS/Windows
-		$buf1 =~ s/\015/\012/g;			# early MacOS
-		$self->add($buf1);
+	while (<FH>) {
+		s/\015?\015\012/\012/g;		# DOS/Windows
+		s/\015/\012/g;			# early MacOS
+		$self->add($_);
 	}
-	_bail("Read failed") unless defined $n1;
 	close(FH);
 
 	$self;
