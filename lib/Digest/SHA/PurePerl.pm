@@ -6,10 +6,9 @@ use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use Fcntl;
 use integer;
-use FileHandle;
 use Carp qw(croak);
 
-$VERSION = '5.88';
+$VERSION = '5.89';
 
 require Exporter;
 @ISA = qw(Exporter);
@@ -871,7 +870,7 @@ sub new {
 	my($class, $alg) = @_;
 	$alg =~ s/\D+//g if defined $alg;
 	if (ref($class)) {	# instance method
-		unless (defined($alg) && ($alg != $class->algorithm)) {
+		if (!defined($alg) || ($alg == $class->algorithm)) {
 			_sharewind($class);
 			return($class);
 		}
@@ -908,21 +907,21 @@ sub _bail {
 	my $msg = shift;
 
 	$msg .= ": $!";
-        croak $msg;
+	croak $msg;
 }
 
 sub _addfile {
-    my ($self, $handle) = @_;
+	my ($self, $handle) = @_;
 
-    my $n;
-    my $buf = "";
+	my $n;
+	my $buf = "";
 
-    while (($n = read($handle, $buf, 4096))) {
-        $self->add($buf);
-    }
-    _bail("Read failed") unless defined $n;
+	while (($n = read($handle, $buf, 4096))) {
+		$self->add($buf);
+	}
+	_bail("Read failed") unless defined $n;
 
-    $self;
+	$self;
 }
 
 my $_can_T_filehandle;
@@ -933,8 +932,9 @@ sub _istext {
 
 	if (! defined $_can_T_filehandle) {
 		local $^W = 0;
-		eval { -T FH };
+		my $istext = eval { -T FH };
 		$_can_T_filehandle = $@ ? 0 : 1;
+		return $_can_T_filehandle ? $istext : -T $file;
 	}
 	return $_can_T_filehandle ? -T FH : -T $file;
 }
@@ -945,10 +945,12 @@ sub _Addfile {
 	return(_addfile($self, $file)) unless ref(\$file) eq 'SCALAR';
 
 	$mode = defined($mode) ? $mode : "";
-	my ($binary, $portable, $BITS) = map { $_ eq $mode } ("b", "p", "0");
+	my ($binary, $UNIVERSAL, $BITS, $portable) =
+		map { $_ eq $mode } ("b", "U", "0", "p");
 
 		## Always interpret "-" to mean STDIN; otherwise use
 		## sysopen to handle full range of POSIX file names
+
 	local *FH;
 	$file eq '-' and open(FH, '< -')
 		or sysopen(FH, $file, O_RDONLY)
@@ -965,18 +967,22 @@ sub _Addfile {
 		return($self);
 	}
 
-	binmode(FH) if $binary || $portable;
-	unless ($portable && _istext(*FH, $file)) {
-		$self->_addfile(*FH);
-		close(FH);
-		return($self);
+	binmode(FH) if $binary || $portable || $UNIVERSAL;
+	if ($UNIVERSAL && _istext(*FH, $file)) {
+		while (<FH>) {
+			s/\015\012/\012/g;	# DOS/Windows
+			s/\015/\012/g;		# early MacOS
+			$self->add($_);
+		}
 	}
-
-	while (<FH>) {
-		s/\015?\015\012/\012/g;		# DOS/Windows
-		s/\015/\012/g;			# early MacOS
-		$self->add($_);
+	elsif ($portable && _istext(*FH, $file)) {
+		while (<FH>) {
+			s/\015?\015\012/\012/g;
+			s/\015/\012/g;
+			$self->add($_);
+		}
 	}
+	else { $self->_addfile(*FH) }
 	close(FH);
 
 	$self;
@@ -1313,10 +1319,10 @@ possible to use common string representations of the algorithm
 (e.g. "sha256", "SHA-384").  If the argument is missing, SHA-1 will
 be used by default.
 
-Invoking I<new> as an instance method will not create a new object;
-instead, it will simply reset the object to the initial state
-associated with I<$alg>.  If the argument is missing, the object
-will continue using the same algorithm that was selected at creation.
+Invoking I<new> as an instance method will reset the object to the
+initial state associated with I<$alg>.  If the argument is missing,
+the object will continue using the same algorithm that was selected
+at creation.
 
 =item B<reset($alg)>
 
@@ -1389,22 +1395,31 @@ argument to one of the following values:
 
 	"b"	read file in binary mode
 
-	"p"	use portable mode
+	"U"	use universal newlines
+
+	"p"	use portable mode (to be deprecated)
 
 	"0"	use BITS mode
 
-The "p" mode ensures that the digest value of I<$filename> will be the
-same when computed on different operating systems.  It accomplishes
-this by internally translating all newlines in text files to UNIX format
-before calculating the digest.  Binary files are read in raw mode with
-no translation whatsoever.
+The "U" mode is modeled on Python's "Universal Newlines" concept, whereby
+DOS and Mac OS line terminators are converted internally to UNIX newlines
+before processing.  This ensures consistent digest values when working
+simultaneously across multiple file systems.  B<The "U" mode influences
+only text files>, namely those passing Perl's I<-T> test; binary files
+are processed with no translation whatsoever.
+
+The "p" mode differs from "U" only in that it treats "\r\r\n" as a single
+newline, a quirky feature designed to accommodate legacy applications that
+occasionally added an extra carriage return before DOS line terminators.
+The "p" mode will be phased out eventually in favor of the cleaner and
+more well-established Universal Newlines concept.
 
 The BITS mode ("0") interprets the contents of I<$filename> as a logical
 stream of bits, where each ASCII '0' or '1' character represents a 0 or
 1 bit, respectively.  All other characters are ignored.  This provides
-a convenient way to calculate the digest values of partial-byte data by
-using files, rather than having to write programs using the I<add_bits>
-method.
+a convenient way to calculate the digest values of partial-byte data
+by using files, rather than having to write separate programs employing
+the I<add_bits> method.
 
 =item B<getstate>
 
@@ -1568,7 +1583,8 @@ The author is particularly grateful to
 	Jeffrey Friedl
 	Robert Gilmour
 	Brian Gladman
-        Adam Kennedy
+	Adam Kennedy
+	Mark Lawrence
 	Andy Lester
 	Alex Muntada
 	Steve Peters

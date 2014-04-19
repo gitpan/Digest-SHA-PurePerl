@@ -1,10 +1,20 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.89  Sat Apr 19 05:14:48 MST 2014
+	- added universal newlines mode ("U") to addfile and shasum
+		-- based on Python Universal Newlines concept
+			-- newlines identical across MacOS, DOS, and UNIX
+		-- will deprecate portable mode ("p") in future
+			-- "U" mode is cleaner and more efficient
+	- eliminated experimental -M option in favor of new -R option
+		-- reverses the order of digest module preference
+		-- undocumented: for test and development use only
+
 5.88  Mon Mar 17 08:46:10 MST 2014
 	- changed text file test (-T) to act on filehandles
 		-- ref. addfile portable mode
 		-- improves consistency when reading from STDIN
-		-- still acts on filenames for early Perls (< 5.6)
+		-- still must act on filenames for early Perls (< 5.6)
 	- added -M and -V options to shasum
 		-- undocumented: for development and testing use only
 

@@ -31,10 +31,11 @@ if ($MODULE eq "Digest::SHA") {
 		Addfile
 		B64digest
 		Hexdigest
-		shaclose
-		shadup
 		shaopen
+		shaclose
+		shainit
 		sharewind
+		shadup
 		shawrite
 	);
 }
