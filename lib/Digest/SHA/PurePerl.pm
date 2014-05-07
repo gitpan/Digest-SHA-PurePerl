@@ -3,35 +3,23 @@ package Digest::SHA::PurePerl;
 require 5.003000;
 
 use strict;
+use warnings;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 use Fcntl;
 use integer;
 use Carp qw(croak);
 
-$VERSION = '5.89';
+$VERSION = '5.90';
 
 require Exporter;
 @ISA = qw(Exporter);
 @EXPORT_OK = ();		# see "SHA and HMAC-SHA functions" below
 
-# If possible, inherit from Digest::base
-
-eval {
-	require Digest::base;
-	push(@ISA, 'Digest::base');
-};
-
-*addfile   = \&_Addfile;
-*hexdigest = \&_Hexdigest;
-*b64digest = \&_B64digest;
-
 # ref. src/sha.c and sha/sha64bit.c from Digest::SHA
 
 my $MAX32 = 0xffffffff;
-my $TWO32 = 4294967296;
 
 my $uses64bit = (((1 << 16) << 16) << 16) << 15;
-
 
 my @H01 = (			# SHA-1 initial hash value
 	0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476,
@@ -309,12 +297,7 @@ my $sha512 = \&_sha512_placeholder;
 
 my $_64bit_code = '
 
-my $w_flag;
-
-BEGIN {
-	$w_flag = $^W;		# suppress compiler warnings about
-	$^W = 0;		# non-portable 64-bit constants
-}
+no warnings qw(portable);
 
 my @K512 = (
 	0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f,
@@ -365,7 +348,7 @@ my @K512 = (
 	0x963877195940eabd, 0x96283ee2a88effe3, 0xbe5e1e2553863992,
 	0x2b0199fc2c85b8aa, 0x0eb72ddc81c52ca2);
 
-BEGIN { $^W = $w_flag }		# restore prior warning state
+use warnings;
 
 sub _c_SL64 { my($x, $n) = @_; "($x << $n)" }
 
@@ -564,6 +547,7 @@ sub _shawrite {
 	my($bitstr, $bitcnt, $self) = @_;
 	return(0) unless $bitcnt > 0;
 	no integer;
+	my $TWO32 = 4294967296;
 	if (($self->{lenll} += $bitcnt) >= $TWO32) {
 		$self->{lenll} -= $TWO32;
 		if (++$self->{lenlh} >= $TWO32) {
@@ -850,7 +834,7 @@ sub digest {
 	$rsp;
 }
 
-sub _Hexdigest {
+sub hexdigest {
 	my $self = shift;
 	_shafinish($self);
 	my $rsp = _shahex($self);
@@ -858,7 +842,7 @@ sub _Hexdigest {
 	$rsp;
 }
 
-sub _B64digest {
+sub b64digest {
 	my $self = shift;
 	_shafinish($self);
 	my $rsp = _shabase64($self);
@@ -887,10 +871,9 @@ sub clone {
 	my $self = shift;
 	my $copy = _shadup($self) or return;
 	bless($copy, ref($self));
-	return($copy);
 }
 
-*reset = \&new;
+BEGIN { *reset = \&new }
 
 sub add_bits {
 	my($self, $data, $nbits) = @_;
@@ -924,22 +907,24 @@ sub _addfile {
 	$self;
 }
 
-my $_can_T_filehandle;
+{
+	my $_can_T_filehandle;
 
-sub _istext {
-	local *FH = shift;
-	my $file = shift;
+	sub _istext {
+		local *FH = shift;
+		my $file = shift;
 
-	if (! defined $_can_T_filehandle) {
-		local $^W = 0;
-		my $istext = eval { -T FH };
-		$_can_T_filehandle = $@ ? 0 : 1;
-		return $_can_T_filehandle ? $istext : -T $file;
+		if (! defined $_can_T_filehandle) {
+			local $^W = 0;
+			my $istext = eval { -T FH };
+			$_can_T_filehandle = $@ ? 0 : 1;
+			return $_can_T_filehandle ? $istext : -T $file;
+		}
+		return $_can_T_filehandle ? -T FH : -T $file;
 	}
-	return $_can_T_filehandle ? -T FH : -T $file;
 }
 
-sub _Addfile {
+sub addfile {
 	my ($self, $file, $mode) = @_;
 
 	return(_addfile($self, $file)) unless ref(\$file) eq 'SCALAR';
@@ -1593,9 +1578,8 @@ The author is particularly grateful to
 	Gunnar Wolf
 	Adam Woodbury
 
-"who by trained skill rescued life from such great billows and such thick
-darkness and moored it in so perfect a calm and in so brilliant a light"
-- Lucretius
+"Believe it I don't."
+- Torvic Drewmel
 
 =head1 COPYRIGHT AND LICENSE
 

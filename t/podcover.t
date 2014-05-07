@@ -28,14 +28,9 @@ my @privfcns = ();
 
 if ($MODULE eq "Digest::SHA") {
 	@privfcns = qw(
-		Addfile
-		B64digest
-		Hexdigest
-		shaopen
-		shaclose
+		newSHA
 		shainit
 		sharewind
-		shadup
 		shawrite
 	);
 }
