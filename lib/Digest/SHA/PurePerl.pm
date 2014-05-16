@@ -9,11 +9,18 @@ use Fcntl;
 use integer;
 use Carp qw(croak);
 
-$VERSION = '5.90';
+$VERSION = '5.91';
 
 require Exporter;
 @ISA = qw(Exporter);
 @EXPORT_OK = ();		# see "SHA and HMAC-SHA functions" below
+
+# Inherit from Digest::base if possible
+
+eval {
+	require Digest::base;
+	push(@ISA, 'Digest::base');
+};
 
 # ref. src/sha.c and sha/sha64bit.c from Digest::SHA
 
@@ -1449,9 +1456,6 @@ Like I<digest>, this method is a read-once operation.  Call
 I<$sha-E<gt>clone-E<gt>hexdigest> if it's necessary to preserve
 the original digest state.
 
-This method is inherited if L<Digest::base> is installed on your
-system.  Otherwise, a functionally equivalent substitute is used.
-
 =item B<b64digest>
 
 Returns the digest encoded as a Base64 string.
@@ -1459,9 +1463,6 @@ Returns the digest encoded as a Base64 string.
 Like I<digest>, this method is a read-once operation.  Call
 I<$sha-E<gt>clone-E<gt>b64digest> if it's necessary to preserve
 the original digest state.
-
-This method is inherited if L<Digest::base> is installed on your
-system.  Otherwise, a functionally equivalent substitute is used.
 
 It's important to note that the resulting string does B<not> contain
 the padding characters typical of Base64 encodings.  This omission is

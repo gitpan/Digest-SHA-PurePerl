@@ -42,13 +42,13 @@ if (@EDITs) {
 	}
 }
 
-my %att = (
+my %attr = (
 	'NAME'		=> 'Digest::SHA::PurePerl',
 	'VERSION_FROM'	=> $PM,
 	'EXE_FILES'	=> [ $SHASUM ],
 );
 
 my $MMversion = $ExtUtils::MakeMaker::VERSION || '0.00_00';
-$att{NO_META} = 1 if $MMversion ge '6.10_03';
+$attr{NO_META} = 1 if $MMversion ge '6.10_03';
 
-WriteMakefile(%att);
+WriteMakefile(%attr);

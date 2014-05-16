@@ -1,5 +1,10 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.91  Fri May 16 10:21:44 MST 2014
+	- re-established inheritance from Digest::base
+		-- to pick up future Digest enhancements automatically
+	- cleaned up documentation
+
 5.90  Wed May  7 07:57:08 MST 2014
 	- enhanced Makefile.PL to allow 'use warnings'
 		-- automatically reverts to $^W for early Perls
