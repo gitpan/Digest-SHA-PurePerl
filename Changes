@@ -1,5 +1,8 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.92  Sun Jun  1 00:15:44 MST 2014
+	- changes only to Digest::SHA for version 5.92
+
 5.91  Fri May 16 10:21:44 MST 2014
 	- re-established inheritance from Digest::base
 		-- to pick up future Digest enhancements automatically
