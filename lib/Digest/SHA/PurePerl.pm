@@ -9,7 +9,7 @@ use Fcntl;
 use integer;
 use Carp qw(croak);
 
-$VERSION = '5.92';
+$VERSION = '5.93';
 
 require Exporter;
 @ISA = qw(Exporter);

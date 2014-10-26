@@ -1,5 +1,9 @@
 Revision history for Perl module Digest::SHA::PurePerl.
 
+5.93  Sun Oct 26 06:00:48 MST 2014
+	- provided workaround in t/methods.t for unreliable -T test
+		-- Some Perl 5.8's mistake text for binary
+
 5.92  Sun Jun  1 00:15:44 MST 2014
 	- changes only to Digest::SHA for version 5.92
 
